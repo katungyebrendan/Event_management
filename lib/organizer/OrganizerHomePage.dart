@@ -42,7 +42,10 @@ class _OrganizerHomePageState extends State<OrganizerHomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Event Organizer Home')),
+      appBar: AppBar(
+        title: Text('FunExpo'),
+        backgroundColor: Colors.blue,
+      ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
@@ -50,12 +53,19 @@ class _OrganizerHomePageState extends State<OrganizerHomePage> {
           children: [
             ElevatedButton(
               onPressed: _createEventAndPickImage,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.blue,
+              ),
               child: Text('Add New Event'),
             ),
             SizedBox(height: 20),
             Text(
               'Events:',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: Colors.blue,
+              ),
             ),
             SizedBox(height: 10),
             Expanded(
@@ -83,6 +93,20 @@ class _OrganizerHomePageState extends State<OrganizerHomePage> {
                                   event['imageUrl'],
                                   width: double.infinity,
                                   fit: BoxFit.cover,
+                                  errorBuilder: (BuildContext context,
+                                      Object exception,
+                                      StackTrace? stackTrace) {
+                                    return Container(
+                                      width: double.infinity,
+                                      height: 200,
+                                      color: Colors.grey,
+                                      child: Icon(
+                                        Icons.error,
+                                        color: Colors.red,
+                                        size: 40,
+                                      ),
+                                    );
+                                  },
                                 ),
                               Padding(
                                 padding: const EdgeInsets.all(16.0),
@@ -94,6 +118,7 @@ class _OrganizerHomePageState extends State<OrganizerHomePage> {
                                       style: TextStyle(
                                         fontSize: 18,
                                         fontWeight: FontWeight.bold,
+                                        color: Colors.blue,
                                       ),
                                     ),
                                     SizedBox(height: 8),
@@ -105,11 +130,15 @@ class _OrganizerHomePageState extends State<OrganizerHomePage> {
                                       '\$${event['price']?.toStringAsFixed(2) ?? 'No Price'}',
                                       style: TextStyle(
                                         fontWeight: FontWeight.bold,
+                                        color: Colors.black87,
                                       ),
                                     ),
                                     SizedBox(height: 8),
                                     Text(
                                       'Date: ${eventDate != null ? DateFormat('yyyy-MM-dd').format(eventDate) : 'No Date'}',
+                                      style: TextStyle(
+                                        color: Colors.black54,
+                                      ),
                                     ),
                                   ],
                                 ),
@@ -123,6 +152,7 @@ class _OrganizerHomePageState extends State<OrganizerHomePage> {
           ],
         ),
       ),
+      backgroundColor: Colors.blue[50],
     );
   }
 }
