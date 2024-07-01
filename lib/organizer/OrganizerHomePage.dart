@@ -75,23 +75,46 @@ class _OrganizerHomePageState extends State<OrganizerHomePage> {
 
                         return Card(
                           margin: EdgeInsets.symmetric(vertical: 8),
-                          child: ListTile(
-                            title: Text(event['title'] ?? 'No Title'),
-                            subtitle: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(event['description'] ?? 'No Description'),
-                                Text(
-                                  '\$${event['price']?.toStringAsFixed(2) ?? 'No Price'}',
-                                  style: TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                  ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              if (event['imageUrl'] != null)
+                                Image.network(
+                                  event['imageUrl'],
+                                  width: double.infinity,
+                                  fit: BoxFit.cover,
                                 ),
-                                Text(
-                                  'Date: ${eventDate != null ? DateFormat('yyyy-MM-dd').format(eventDate) : 'No Date'}',
+                              Padding(
+                                padding: const EdgeInsets.all(16.0),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      event['title'] ?? 'No Title',
+                                      style: TextStyle(
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                    SizedBox(height: 8),
+                                    Text(
+                                      event['description'] ?? 'No Description',
+                                    ),
+                                    SizedBox(height: 8),
+                                    Text(
+                                      '\$${event['price']?.toStringAsFixed(2) ?? 'No Price'}',
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                    SizedBox(height: 8),
+                                    Text(
+                                      'Date: ${eventDate != null ? DateFormat('yyyy-MM-dd').format(eventDate) : 'No Date'}',
+                                    ),
+                                  ],
                                 ),
-                              ],
-                            ),
+                              ),
+                            ],
                           ),
                         );
                       },
