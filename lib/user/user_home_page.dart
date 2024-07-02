@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../auth/login_page.dart'; // Ensure the correct path and naming
+import 'event_detail.dart'; // Ensure the correct path
 
 class UserHomePage extends StatelessWidget {
   const UserHomePage({super.key});
@@ -13,6 +14,19 @@ class UserHomePage extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Home Page'),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () async {
+            await FirebaseAuth.instance.signOut();
+            if (context.mounted) {
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(
+                    builder: (context) => LoginPage()), // Remove const
+              );
+            }
+          },
+        ),
         actions: [
           IconButton(
             icon: const Icon(Icons.logout),
@@ -21,7 +35,8 @@ class UserHomePage extends StatelessWidget {
               if (context.mounted) {
                 Navigator.pushReplacement(
                   context,
-                  MaterialPageRoute(builder: (context) => LoginPage()),
+                  MaterialPageRoute(
+                      builder: (context) => LoginPage()), // Remove const
                 );
               }
             },
@@ -53,6 +68,7 @@ class UserHomePage extends StatelessWidget {
                     var description = event['description'] ?? 'No Description';
                     var price = event['price']?.toString() ?? 'No Price';
                     var imageUrl = event['imageUrl'] ?? '';
+                    var date = (event['date'] as Timestamp).toDate();
 
                     return Card(
                       child: ListTile(
@@ -73,8 +89,23 @@ class UserHomePage extends StatelessWidget {
                                 ),
                         ),
                         title: Text(title),
-                        subtitle: Text(description),
-                        trailing: Text('\$$price'),
+                        trailing: ElevatedButton(
+                          onPressed: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => EventDetailsPage(
+                                  title: title,
+                                  description: description,
+                                  price: price,
+                                  imageUrl: imageUrl,
+                                  date: date,
+                                ),
+                              ),
+                            );
+                          },
+                          child: const Text('Details'),
+                        ),
                       ),
                     );
                   },
