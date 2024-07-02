@@ -121,7 +121,8 @@ class _UploadImagePageState extends State<UploadImagePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Upload Image'),
+        title: Text('FunExpo'),
+        backgroundColor: Colors.blue,
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -131,66 +132,138 @@ class _UploadImagePageState extends State<UploadImagePage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: <Widget>[
-                TextFormField(
-                  decoration: InputDecoration(labelText: 'Title'),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Please enter a title';
-                    }
-                    return null;
-                  },
-                  onSaved: (value) {
-                    _title = value!;
-                  },
+                Container(
+                  margin: const EdgeInsets.symmetric(vertical: 10),
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(8.0),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black12,
+                        blurRadius: 10.0,
+                        spreadRadius: 2.0,
+                      ),
+                    ],
+                  ),
+                  child: TextFormField(
+                    decoration: InputDecoration(
+                      labelText: 'Title',
+                      border: InputBorder.none,
+                    ),
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Please enter a title';
+                      }
+                      return null;
+                    },
+                    onSaved: (value) {
+                      _title = value!;
+                    },
+                  ),
                 ),
-                TextFormField(
-                  decoration: InputDecoration(labelText: 'Description'),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Please enter a description';
-                    }
-                    return null;
-                  },
-                  onSaved: (value) {
-                    _description = value!;
-                  },
+                Container(
+                  margin: const EdgeInsets.symmetric(vertical: 10),
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(8.0),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black12,
+                        blurRadius: 10.0,
+                        spreadRadius: 2.0,
+                      ),
+                    ],
+                  ),
+                  child: TextFormField(
+                    decoration: InputDecoration(
+                      labelText: 'Description',
+                      border: InputBorder.none,
+                    ),
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Please enter a description';
+                      }
+                      return null;
+                    },
+                    onSaved: (value) {
+                      _description = value!;
+                    },
+                  ),
                 ),
-                TextFormField(
-                  decoration: InputDecoration(labelText: 'Price'),
-                  keyboardType: TextInputType.number,
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Please enter a price';
-                    }
-                    return null;
-                  },
-                  onSaved: (value) {
-                    _price = double.parse(value!);
-                  },
+                Container(
+                  margin: const EdgeInsets.symmetric(vertical: 10),
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(8.0),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black12,
+                        blurRadius: 10.0,
+                        spreadRadius: 2.0,
+                      ),
+                    ],
+                  ),
+                  child: TextFormField(
+                    decoration: InputDecoration(
+                      labelText: 'Price',
+                      border: InputBorder.none,
+                    ),
+                    keyboardType: TextInputType.number,
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Please enter a price';
+                      }
+                      return null;
+                    },
+                    onSaved: (value) {
+                      _price = double.parse(value!);
+                    },
+                  ),
                 ),
-                TextFormField(
-                  decoration: InputDecoration(labelText: 'Date'),
-                  readOnly: true,
-                  onTap: () async {
-                    DateTime? pickedDate = await showDatePicker(
-                      context: context,
-                      initialDate: _date,
-                      firstDate: DateTime(2000),
-                      lastDate: DateTime(2101),
-                    );
-                    if (pickedDate != null && pickedDate != _date)
-                      setState(() {
-                        _date = pickedDate;
-                      });
-                  },
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Please select a date';
-                    }
-                    return null;
-                  },
-                  controller: TextEditingController(
-                    text: "${_date.toLocal()}".split(' ')[0],
+                Container(
+                  margin: const EdgeInsets.symmetric(vertical: 10),
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(8.0),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black12,
+                        blurRadius: 10.0,
+                        spreadRadius: 2.0,
+                      ),
+                    ],
+                  ),
+                  child: TextFormField(
+                    decoration: InputDecoration(
+                      labelText: 'Date',
+                      border: InputBorder.none,
+                    ),
+                    readOnly: true,
+                    onTap: () async {
+                      DateTime? pickedDate = await showDatePicker(
+                        context: context,
+                        initialDate: _date,
+                        firstDate: DateTime(2000),
+                        lastDate: DateTime(2101),
+                      );
+                      if (pickedDate != null && pickedDate != _date)
+                        setState(() {
+                          _date = pickedDate;
+                        });
+                    },
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Please select a date';
+                      }
+                      return null;
+                    },
+                    controller: TextEditingController(
+                      text: "${_date.toLocal()}".split(' ')[0],
+                    ),
                   ),
                 ),
                 TextButton(
@@ -204,6 +277,11 @@ class _UploadImagePageState extends State<UploadImagePage> {
                 SizedBox(height: 20),
                 ElevatedButton(
                   onPressed: _uploadData,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.blue,
+                    padding: EdgeInsets.symmetric(horizontal: 50, vertical: 15),
+                    textStyle: TextStyle(fontSize: 16),
+                  ),
                   child: Text('Submit'),
                 ),
               ],
@@ -211,6 +289,7 @@ class _UploadImagePageState extends State<UploadImagePage> {
           ),
         ),
       ),
+      backgroundColor: Colors.blue[50],
     );
   }
 }
