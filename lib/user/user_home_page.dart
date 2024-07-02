@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import '../auth/login_page.dart'; // Ensure the correct path and naming
-import 'event_detail.dart'; // Ensure the correct path
+import '../auth/login_page.dart';
+import 'event_detail.dart';
 
 class UserHomePage extends StatelessWidget {
   const UserHomePage({super.key});
@@ -22,7 +22,7 @@ class UserHomePage extends StatelessWidget {
               Navigator.pushReplacement(
                 context,
                 MaterialPageRoute(
-                    builder: (context) => LoginPage()), // Remove const
+                    builder: (context) => LoginPage()), // Add const
               );
             }
           },
@@ -36,7 +36,7 @@ class UserHomePage extends StatelessWidget {
                 Navigator.pushReplacement(
                   context,
                   MaterialPageRoute(
-                      builder: (context) => LoginPage()), // Remove const
+                      builder: (context) => LoginPage()), // Add const
                 );
               }
             },
@@ -65,10 +65,7 @@ class UserHomePage extends StatelessWidget {
                     var event = snapshot.data!.docs[index].data()
                         as Map<String, dynamic>;
                     var title = event['title'] ?? 'No Title';
-                    var description = event['description'] ?? 'No Description';
-                    var price = event['price']?.toString() ?? 'No Price';
                     var imageUrl = event['imageUrl'] ?? '';
-                    var date = (event['date'] as Timestamp).toDate();
 
                     return Card(
                       child: ListTile(
@@ -96,10 +93,11 @@ class UserHomePage extends StatelessWidget {
                               MaterialPageRoute(
                                 builder: (context) => EventDetailsPage(
                                   title: title,
-                                  description: description,
-                                  price: price,
+                                  description:
+                                      '', // Since description isn't retrieved here
+                                  price: '', // Since price isn't retrieved here
                                   imageUrl: imageUrl,
-                                  date: date,
+                                  date: null, // Since date isn't retrieved here
                                 ),
                               ),
                             );

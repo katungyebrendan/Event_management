@@ -20,30 +20,39 @@ class _OrganizerHomePageState extends State<OrganizerHomePage> {
   Future<void> _loadEvents() async {
     final querySnapshot =
         await FirebaseFirestore.instance.collection('events').get();
-    final events = querySnapshot.docs.map((doc) {
-      final data = doc.data();
-      data['id'] = doc.id; // Add the document ID to the event data
-      return data;
-    }).toList();
+    final events = querySnapshot.docs
+        .map((doc) {
+          final data = doc.data() as Map<String, dynamic>;
+          data['id'] = doc.id; // Add the document ID to the event data
+          return data;
+        })
+        .where((event) =>
+            event['title'] != null &&
+            event['description'] != null &&
+            event['price'] != null &&
+            event['date'] != null &&
+            event['imageUrl'] != null)
+        .toList(); // Filter events with all fields non-null
     setState(() {
-      _events = events.cast<Map<String, dynamic>>();
+      _events = events;
     });
   }
 
   Future<void> _createEventAndPickImage() async {
-    Navigator.push(
+    await Navigator.push(
       context,
       MaterialPageRoute(
         builder: (context) => UploadImagePage(),
       ),
     );
+    _loadEvents(); // Reload events after creating a new one
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('FunExpo'),
+        title: const Text('FunExpo'),
         backgroundColor: Colors.blue,
       ),
       body: Padding(
@@ -56,10 +65,10 @@ class _OrganizerHomePageState extends State<OrganizerHomePage> {
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.blue,
               ),
-              child: Text('Add New Event'),
+              child: const Text('Add New Event'),
             ),
-            SizedBox(height: 20),
-            Text(
+            const SizedBox(height: 20),
+            const Text(
               'Events:',
               style: TextStyle(
                 fontSize: 18,
@@ -67,10 +76,10 @@ class _OrganizerHomePageState extends State<OrganizerHomePage> {
                 color: Colors.blue,
               ),
             ),
-            SizedBox(height: 10),
+            const SizedBox(height: 10),
             Expanded(
               child: _events.isEmpty
-                  ? Center(child: Text('No events available'))
+                  ? const Center(child: Text('No events available'))
                   : ListView.builder(
                       itemCount: _events.length,
                       itemBuilder: (context, index) {
@@ -84,7 +93,7 @@ class _OrganizerHomePageState extends State<OrganizerHomePage> {
                         }
 
                         return Card(
-                          margin: EdgeInsets.symmetric(vertical: 8),
+                          margin: const EdgeInsets.symmetric(vertical: 8),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
@@ -93,20 +102,6 @@ class _OrganizerHomePageState extends State<OrganizerHomePage> {
                                   event['imageUrl'],
                                   width: double.infinity,
                                   fit: BoxFit.cover,
-                                  errorBuilder: (BuildContext context,
-                                      Object exception,
-                                      StackTrace? stackTrace) {
-                                    return Container(
-                                      width: double.infinity,
-                                      height: 200,
-                                      color: Colors.grey,
-                                      child: Icon(
-                                        Icons.error,
-                                        color: Colors.red,
-                                        size: 40,
-                                      ),
-                                    );
-                                  },
                                 ),
                               Padding(
                                 padding: const EdgeInsets.all(16.0),
@@ -115,28 +110,28 @@ class _OrganizerHomePageState extends State<OrganizerHomePage> {
                                   children: [
                                     Text(
                                       event['title'] ?? 'No Title',
-                                      style: TextStyle(
+                                      style: const TextStyle(
                                         fontSize: 18,
                                         fontWeight: FontWeight.bold,
                                         color: Colors.blue,
                                       ),
                                     ),
-                                    SizedBox(height: 8),
+                                    const SizedBox(height: 8),
                                     Text(
                                       event['description'] ?? 'No Description',
                                     ),
-                                    SizedBox(height: 8),
+                                    const SizedBox(height: 8),
                                     Text(
                                       '\$${event['price']?.toStringAsFixed(2) ?? 'No Price'}',
-                                      style: TextStyle(
+                                      style: const TextStyle(
                                         fontWeight: FontWeight.bold,
                                         color: Colors.black87,
                                       ),
                                     ),
-                                    SizedBox(height: 8),
+                                    const SizedBox(height: 8),
                                     Text(
                                       'Date: ${eventDate != null ? DateFormat('yyyy-MM-dd').format(eventDate) : 'No Date'}',
-                                      style: TextStyle(
+                                      style: const TextStyle(
                                         color: Colors.black54,
                                       ),
                                     ),
