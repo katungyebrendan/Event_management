@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import '../auth/login_page.dart'; // Ensure the correct path and naming
-import 'event_detail.dart'; // Ensure the correct path
+import 'package:intl/intl.dart';
+import '../auth/login_page.dart';
+import 'event_detail.dart';
 
 class UserHomePage extends StatefulWidget {
   const UserHomePage({Key? key}) : super(key: key);
@@ -29,7 +30,9 @@ class _UserHomePageState extends State<UserHomePage> {
             if (context.mounted) {
               Navigator.pushReplacement(
                 context,
-                MaterialPageRoute(builder: (context) => LoginPage()),
+                MaterialPageRoute(
+                  builder: (context) => const LoginPage(), // Add const
+                ),
               );
             }
           },
@@ -42,7 +45,9 @@ class _UserHomePageState extends State<UserHomePage> {
               if (context.mounted) {
                 Navigator.pushReplacement(
                   context,
-                  MaterialPageRoute(builder: (context) => LoginPage()),
+                  MaterialPageRoute(
+                    builder: (context) => const LoginPage(), // Add const
+                  ),
                 );
               }
             },
@@ -70,8 +75,7 @@ class _UserHomePageState extends State<UserHomePage> {
           ),
           Expanded(
             child: StreamBuilder<QuerySnapshot>(
-              stream:
-                  FirebaseFirestore.instance.collection('events').snapshots(),
+              stream: FirebaseFirestore.instance.collection('events').snapshots(),
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   return const Center(child: CircularProgressIndicator());
@@ -83,21 +87,24 @@ class _UserHomePageState extends State<UserHomePage> {
                 var filteredDocs = snapshot.data!.docs.where((doc) {
                   var data = doc.data() as Map<String, dynamic>;
                   var title = data['title']?.toString().toLowerCase() ?? '';
-                  var description =
-                      data['description']?.toString().toLowerCase() ?? '';
-                  return title.contains(_searchQuery) ||
-                      description.contains(_searchQuery);
+                  var description = data['description']?.toString().toLowerCase() ?? '';
+                  var imageUrl = data['imageUrl'];
+                  var date = data['date'] is Timestamp
+                      ? (data['date'] as Timestamp).toDate()
+                      : null;
+
+                  return (title.contains(_searchQuery) || description.contains(_searchQuery)) &&
+                      title.isNotEmpty && description.isNotEmpty && imageUrl != null && date != null;
                 }).toList();
 
                 return ListView.builder(
                   itemCount: filteredDocs.length,
                   itemBuilder: (context, index) {
-                    var event =
-                        filteredDocs[index].data() as Map<String, dynamic>;
-                    var title = event['title'] ?? 'No Title';
-                    var description = event['description'] ?? 'No Description';
+                    var event = filteredDocs[index].data() as Map<String, dynamic>;
+                    var title = event['title'];
+                    var description = event['description'];
                     var price = event['price']?.toString() ?? 'No Price';
-                    var imageUrl = event['imageUrl'] ?? '';
+                    var imageUrl = event['imageUrl'];
                     var date = (event['date'] as Timestamp).toDate();
 
                     return Card(
@@ -105,20 +112,15 @@ class _UserHomePageState extends State<UserHomePage> {
                         leading: SizedBox(
                           width: 50,
                           height: 50,
-                          child: imageUrl.isNotEmpty
-                              ? Image.network(
-                                  imageUrl,
-                                  width: 50,
-                                  height: 50,
-                                  fit: BoxFit.cover,
-                                )
-                              : const Placeholder(
-                                  fallbackHeight: 50,
-                                  fallbackWidth: 50,
-                                  color: Colors.grey,
-                                ),
+                          child: Image.network(
+                            imageUrl,
+                            width: 50,
+                            height: 50,
+                            fit: BoxFit.cover,
+                          ),
                         ),
                         title: Text(title),
+                        subtitle: Text(DateFormat('yyyy-MM-dd').format(date)),
                         trailing: ElevatedButton(
                           onPressed: () {
                             Navigator.push(
