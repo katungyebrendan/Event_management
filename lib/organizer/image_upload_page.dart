@@ -9,6 +9,10 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:uuid/uuid.dart'; // For generating unique IDs
 
 class UploadImagePage extends StatefulWidget {
+  final String collection; // Add this parameter
+
+  UploadImagePage({required this.collection}); // Update constructor
+
   @override
   _UploadImagePageState createState() => _UploadImagePageState();
 }
@@ -21,6 +25,7 @@ class _UploadImagePageState extends State<UploadImagePage> {
   String _description = '';
   DateTime _date = DateTime.now();
   double _price = 0.0;
+  String _location = ''; // Add location field
 
   final picker = ImagePicker();
 
@@ -87,12 +92,13 @@ class _UploadImagePageState extends State<UploadImagePage> {
           throw Exception("No authenticated user");
         }
 
-        // Save data to Firestore with the organizerId
-        await FirebaseFirestore.instance.collection('events').add({
+        // Save data to Firestore with the organizerId in the specified collection
+        await FirebaseFirestore.instance.collection(widget.collection).add({
           'title': _title,
           'description': _description,
           'date': _date,
           'price': _price,
+          'location': _location, // Add location field
           'imageUrl': imageUrl,
           'organizerId': user.uid, // Add the organizer ID
         });
@@ -241,57 +247,55 @@ class _UploadImagePageState extends State<UploadImagePage> {
                   ),
                   child: TextFormField(
                     decoration: InputDecoration(
-                      labelText: 'Date',
+                      labelText: 'Location',
                       border: InputBorder.none,
                     ),
-                    readOnly: true,
-                    onTap: () async {
-                      DateTime? pickedDate = await showDatePicker(
-                        context: context,
-                        initialDate: _date,
-                        firstDate: DateTime(2000),
-                        lastDate: DateTime(2101),
-                      );
-                      if (pickedDate != null && pickedDate != _date)
-                        setState(() {
-                          _date = pickedDate;
-                        });
-                    },
                     validator: (value) {
                       if (value == null || value.isEmpty) {
-                        return 'Please select a date';
+                        return 'Please enter a location';
                       }
                       return null;
                     },
-                    controller: TextEditingController(
-                      text: "${_date.toLocal()}".split(' ')[0],
-                    ),
+                    onSaved: (value) {
+                      _location = value!;
+                    },
                   ),
                 ),
-                TextButton(
-                  onPressed: _pickImage,
-                  child: Text('Pick Image'),
+                SizedBox(height: 16.0),
+                GestureDetector(
+                  onTap: _pickImage,
+                  child: Container(
+                    height: 200,
+                    decoration: BoxDecoration(
+                      color: Colors.grey[200],
+                      borderRadius: BorderRadius.circular(8.0),
+                      border: Border.all(
+                        color: Colors.grey,
+                        width: 1.0,
+                      ),
+                    ),
+                    child: _imageFile != null
+                        ? Image.file(_imageFile!, fit: BoxFit.cover)
+                        : (_webImage != null
+                            ? Image.memory(_webImage!, fit: BoxFit.cover)
+                            : Icon(Icons.add_a_photo, color: Colors.grey)),
+                  ),
                 ),
-                if (_imageFile != null)
-                  Image.file(_imageFile!)
-                else if (_webImage != null)
-                  Image.memory(_webImage!),
-                SizedBox(height: 20),
+                SizedBox(height: 16.0),
                 ElevatedButton(
                   onPressed: _uploadData,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.blue,
-                    padding: EdgeInsets.symmetric(horizontal: 50, vertical: 15),
-                    textStyle: TextStyle(fontSize: 16),
-                  ),
                   child: Text('Submit'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor:
+                        Colors.blue, // Use backgroundColor instead of primary
+                    padding: EdgeInsets.symmetric(vertical: 16.0),
+                  ),
                 ),
               ],
             ),
           ),
         ),
       ),
-      backgroundColor: Colors.blue[50],
     );
   }
 }
