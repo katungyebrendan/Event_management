@@ -4,6 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
 import '../auth/login_page.dart';
 import 'event_detail.dart';
+import 'search_service.dart';
 
 class UserHomePage extends StatefulWidget {
   const UserHomePage({Key? key}) : super(key: key);
@@ -13,14 +14,19 @@ class UserHomePage extends StatefulWidget {
 }
 
 class _UserHomePageState extends State<UserHomePage> {
-  TextEditingController _searchController = TextEditingController();
+  final TextEditingController _searchController = TextEditingController();
+  final SearchService _searchService = SearchService();
   String _searchQuery = '';
   String _selectedCategory = 'music'; // Default category
+  bool _showRecommended = false; // Toggle for showing recommended events
+
+  @override
+  void initState() {
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {
-    final User? user = FirebaseAuth.instance.currentUser;
-
     return Scaffold(
       appBar: AppBar(
         title: const Text('FunExpo'),
@@ -32,7 +38,7 @@ class _UserHomePageState extends State<UserHomePage> {
               Navigator.pushReplacement(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => LoginPage(), // Removed const
+                  builder: (context) => LoginPage(),
                 ),
               );
             }
@@ -47,7 +53,7 @@ class _UserHomePageState extends State<UserHomePage> {
                 Navigator.pushReplacement(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => LoginPage(), // Removed const
+                    builder: (context) => LoginPage(),
                   ),
                 );
               }
@@ -68,6 +74,17 @@ class _UserHomePageState extends State<UserHomePage> {
                     child: Text('Select Category: $_selectedCategory'),
                   ),
                 ),
+                SizedBox(width: 8),
+                ElevatedButton(
+                  onPressed: () {
+                    setState(() {
+                      _showRecommended = !_showRecommended;
+                    });
+                  },
+                  child: Text(_showRecommended
+                      ? 'Show All Events'
+                      : 'Show Recommended'),
+                ),
               ],
             ),
           ),
@@ -84,66 +101,62 @@ class _UserHomePageState extends State<UserHomePage> {
                 setState(() {
                   _searchQuery = value.toLowerCase();
                 });
+                if (_searchQuery.isNotEmpty) {
+                  _searchService.storeSearchKeywords(_searchQuery);
+                }
               },
             ),
           ),
           Expanded(
-            child: StreamBuilder<QuerySnapshot>(
-              stream: FirebaseFirestore.instance
-                  .collection(_selectedCategory)
-                  .snapshots(),
+            child: FutureBuilder<List<QueryDocumentSnapshot>>(
+              future: _showRecommended
+                  ? _searchService.getRecommendedEvents()
+                  : _searchService.searchEvents(
+                      _selectedCategory, _searchQuery),
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   return const Center(child: CircularProgressIndicator());
                 }
-                if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+                if (!snapshot.hasData || snapshot.data!.isEmpty) {
                   return const Center(child: Text('No upcoming events yet.'));
                 }
 
-                var filteredDocs = snapshot.data!.docs.where((doc) {
-                  var data = doc.data() as Map<String, dynamic>;
-                  var title = data['title']?.toString().toLowerCase() ?? '';
-                  var description =
-                      data['description']?.toString().toLowerCase() ?? '';
-                  var imageUrl = data['imageUrl'];
-                  var date = data['date'] is Timestamp
-                      ? (data['date'] as Timestamp).toDate()
-                      : null;
-
-                  return (title.contains(_searchQuery) ||
-                          description.contains(_searchQuery)) &&
-                      title.isNotEmpty &&
-                      description.isNotEmpty &&
-                      imageUrl != null &&
-                      date != null;
-                }).toList();
+                var filteredDocs = snapshot.data!;
 
                 return ListView.builder(
                   itemCount: filteredDocs.length,
                   itemBuilder: (context, index) {
                     var event =
                         filteredDocs[index].data() as Map<String, dynamic>;
-                    var title = event['title'];
-                    var description = event['description'];
+                    var title = event['title'] ?? 'No Title';
+                    var description = event['description'] ?? 'No Description';
                     var price = event['price']?.toString() ?? 'No Price';
-                    var imageUrl = event['imageUrl'];
-                    var date = (event['date'] as Timestamp).toDate();
+                    var imageUrl = event['imageUrl'] ?? '';
+                    var date = (event['date'] as Timestamp?)?.toDate() ??
+                        DateTime.now(); // Default to now if date is null
 
                     return Card(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Image.network(
-                            imageUrl,
-                            width: double.infinity,
-                            height: 300,
-                            fit: BoxFit.cover,
-                          ),
+                          imageUrl.isNotEmpty
+                              ? Image.network(
+                                  imageUrl,
+                                  width: double.infinity,
+                                  height: 300,
+                                  fit: BoxFit.cover,
+                                )
+                              : Container(
+                                  color: Colors.grey,
+                                  width: double.infinity,
+                                  height: 300,
+                                  child: const Icon(Icons.image, size: 100),
+                                ),
                           Padding(
                             padding: const EdgeInsets.all(8.0),
                             child: Text(
                               title,
-                              style: TextStyle(
+                              style: const TextStyle(
                                 fontSize: 18,
                                 fontWeight: FontWeight.bold,
                               ),
