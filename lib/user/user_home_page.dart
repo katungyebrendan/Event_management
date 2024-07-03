@@ -4,8 +4,16 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import '../auth/login_page.dart'; // Ensure the correct path and naming
 import 'event_detail.dart'; // Ensure the correct path
 
-class UserHomePage extends StatelessWidget {
-  const UserHomePage({super.key});
+class UserHomePage extends StatefulWidget {
+  const UserHomePage({Key? key}) : super(key: key);
+
+  @override
+  _UserHomePageState createState() => _UserHomePageState();
+}
+
+class _UserHomePageState extends State<UserHomePage> {
+  TextEditingController _searchController = TextEditingController();
+  String _searchQuery = '';
 
   @override
   Widget build(BuildContext context) {
@@ -21,8 +29,7 @@ class UserHomePage extends StatelessWidget {
             if (context.mounted) {
               Navigator.pushReplacement(
                 context,
-                MaterialPageRoute(
-                    builder: (context) => LoginPage()), // Remove const
+                MaterialPageRoute(builder: (context) => LoginPage()),
               );
             }
           },
@@ -35,8 +42,7 @@ class UserHomePage extends StatelessWidget {
               if (context.mounted) {
                 Navigator.pushReplacement(
                   context,
-                  MaterialPageRoute(
-                      builder: (context) => LoginPage()), // Remove const
+                  MaterialPageRoute(builder: (context) => LoginPage()),
                 );
               }
             },
@@ -44,10 +50,24 @@ class UserHomePage extends StatelessWidget {
         ],
       ),
       body: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
+        mainAxisAlignment: MainAxisAlignment.start,
         children: [
-          Text('Welcome, ${user?.email ?? 'Guest'}'),
-          const SizedBox(height: 20),
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: TextField(
+              controller: _searchController,
+              decoration: InputDecoration(
+                labelText: 'Search Events',
+                border: OutlineInputBorder(),
+                prefixIcon: Icon(Icons.search),
+              ),
+              onChanged: (value) {
+                setState(() {
+                  _searchQuery = value.toLowerCase();
+                });
+              },
+            ),
+          ),
           Expanded(
             child: StreamBuilder<QuerySnapshot>(
               stream:
@@ -59,11 +79,21 @@ class UserHomePage extends StatelessWidget {
                 if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
                   return const Center(child: Text('No upcoming events yet.'));
                 }
+
+                var filteredDocs = snapshot.data!.docs.where((doc) {
+                  var data = doc.data() as Map<String, dynamic>;
+                  var title = data['title']?.toString().toLowerCase() ?? '';
+                  var description =
+                      data['description']?.toString().toLowerCase() ?? '';
+                  return title.contains(_searchQuery) ||
+                      description.contains(_searchQuery);
+                }).toList();
+
                 return ListView.builder(
-                  itemCount: snapshot.data!.docs.length,
+                  itemCount: filteredDocs.length,
                   itemBuilder: (context, index) {
-                    var event = snapshot.data!.docs[index].data()
-                        as Map<String, dynamic>;
+                    var event =
+                        filteredDocs[index].data() as Map<String, dynamic>;
                     var title = event['title'] ?? 'No Title';
                     var description = event['description'] ?? 'No Description';
                     var price = event['price']?.toString() ?? 'No Price';
