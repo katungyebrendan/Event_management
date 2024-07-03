@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import '../auth/login_page.dart'; // Ensure the correct path and naming
-import 'event_detail.dart'; // Ensure the correct path
+import 'package:intl/intl.dart';
+import '../auth/login_page.dart';
+import 'event_detail.dart';
 
 class UserHomePage extends StatelessWidget {
   const UserHomePage({super.key});
@@ -22,7 +23,7 @@ class UserHomePage extends StatelessWidget {
               Navigator.pushReplacement(
                 context,
                 MaterialPageRoute(
-                    builder: (context) => LoginPage()), // Remove const
+                    builder: (context) => LoginPage()), // Add const
               );
             }
           },
@@ -36,7 +37,7 @@ class UserHomePage extends StatelessWidget {
                 Navigator.pushReplacement(
                   context,
                   MaterialPageRoute(
-                      builder: (context) => LoginPage()), // Remove const
+                      builder: (context) => LoginPage()), // Add const
                 );
               }
             },
@@ -64,31 +65,30 @@ class UserHomePage extends StatelessWidget {
                   itemBuilder: (context, index) {
                     var event = snapshot.data!.docs[index].data()
                         as Map<String, dynamic>;
-                    var title = event['title'] ?? 'No Title';
-                    var description = event['description'] ?? 'No Description';
-                    var price = event['price']?.toString() ?? 'No Price';
-                    var imageUrl = event['imageUrl'] ?? '';
-                    var date = (event['date'] as Timestamp).toDate();
+                    var title = event['title'];
+                    var imageUrl = event['imageUrl'];
+                    var date = event['date'] is Timestamp
+                        ? (event['date'] as Timestamp).toDate()
+                        : null;
+
+                    if (title == null || imageUrl == null || date == null) {
+                      return const SizedBox.shrink(); // Skip this item
+                    }
 
                     return Card(
                       child: ListTile(
                         leading: SizedBox(
                           width: 50,
                           height: 50,
-                          child: imageUrl.isNotEmpty
-                              ? Image.network(
-                                  imageUrl,
-                                  width: 50,
-                                  height: 50,
-                                  fit: BoxFit.cover,
-                                )
-                              : const Placeholder(
-                                  fallbackHeight: 50,
-                                  fallbackWidth: 50,
-                                  color: Colors.grey,
-                                ),
+                          child: Image.network(
+                            imageUrl,
+                            width: 50,
+                            height: 50,
+                            fit: BoxFit.cover,
+                          ),
                         ),
                         title: Text(title),
+                        subtitle: Text(DateFormat('yyyy-MM-dd').format(date)),
                         trailing: ElevatedButton(
                           onPressed: () {
                             Navigator.push(
@@ -96,8 +96,9 @@ class UserHomePage extends StatelessWidget {
                               MaterialPageRoute(
                                 builder: (context) => EventDetailsPage(
                                   title: title,
-                                  description: description,
-                                  price: price,
+                                  description:
+                                      '', // Since description isn't retrieved here
+                                  price: '', // Since price isn't retrieved here
                                   imageUrl: imageUrl,
                                   date: date,
                                 ),

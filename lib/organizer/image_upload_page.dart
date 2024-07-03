@@ -6,6 +6,7 @@ import 'dart:typed_data';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:uuid/uuid.dart'; // For generating unique IDs
 
 class UploadImagePage extends StatefulWidget {
   @override
@@ -46,12 +47,13 @@ class _UploadImagePageState extends State<UploadImagePage> {
       String? imageUrl;
       if (_imageFile != null || _webImage != null) {
         try {
-          // Upload image to Firebase Storage
+          // Generate a unique file name
+          String uniqueFileName = Uuid().v4();
           String fileName = (_imageFile != null
-              ? _imageFile!.path.split('/').last
-              : 'web_image.png');
+              ? 'images/$uniqueFileName.jpg'
+              : 'images/web_$uniqueFileName.png');
           Reference firebaseStorageRef =
-              FirebaseStorage.instance.ref().child('images/$fileName');
+              FirebaseStorage.instance.ref().child(fileName);
           UploadTask uploadTask;
 
           if (kIsWeb && _webImage != null) {
