@@ -22,33 +22,40 @@ class EventDetailsPage extends StatelessWidget {
       appBar: AppBar(
         title: Text(title),
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: <Widget>[
-            imageUrl.isNotEmpty
-                ? Image.network(imageUrl)
-                : const Placeholder(
-                    fallbackHeight: 200.0,
-                    fallbackWidth: double.infinity,
+      body: RawScrollbar(
+        thumbVisibility: true,
+        thickness: 10, // non-zero thickness
+        child: SingleChildScrollView(
+          physics: const AlwaysScrollableScrollPhysics(), // allow scrolling always
+          child: Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: <Widget>[
+                imageUrl.isNotEmpty
+                   ? Image.network(imageUrl)
+                    : const Placeholder(
+                        fallbackHeight: 200.0,
+                        fallbackWidth: double.infinity,
+                      ),
+                const SizedBox(height: 16.0),
+                Text(
+                  title,
+                  style: const TextStyle(
+                    fontSize: 24.0,
+                    fontWeight: FontWeight.bold,
                   ),
-            const SizedBox(height: 16.0),
-            Text(
-              title,
-              style: const TextStyle(
-                fontSize: 24.0,
-                fontWeight: FontWeight.bold,
-              ),
+                ),
+                const SizedBox(height: 8.0),
+                Text(description),
+                const SizedBox(height: 8.0),
+                Text('Price: $price'),
+                const SizedBox(height: 8.0),
+                if (date!= null)
+                  Text('Date: ${DateFormat('yyyy-MM-dd').format(date!)}'),
+              ],
             ),
-            const SizedBox(height: 8.0),
-            Text(description),
-            const SizedBox(height: 8.0),
-            Text('Price: $price'),
-            const SizedBox(height: 8.0),
-            if (date != null)
-              Text('Date: ${DateFormat('yyyy-MM-dd').format(date!)}'),
-          ],
+          ),
         ),
       ),
     );
