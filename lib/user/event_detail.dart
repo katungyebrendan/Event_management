@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart'; // Add this import for date formatting
 
 class EventDetailsPage extends StatelessWidget {
   final String title;
@@ -28,25 +29,25 @@ class EventDetailsPage extends StatelessWidget {
           children: <Widget>[
             imageUrl.isNotEmpty
                 ? Image.network(imageUrl)
-                : Placeholder(
+                : const Placeholder(
                     fallbackHeight: 200.0,
                     fallbackWidth: double.infinity,
                   ),
-            SizedBox(height: 16.0),
+            const SizedBox(height: 16.0),
             Text(
               title,
-              style: TextStyle(
+              style: const TextStyle(
                 fontSize: 24.0,
                 fontWeight: FontWeight.bold,
               ),
             ),
-            SizedBox(height: 8.0),
+            const SizedBox(height: 8.0),
             Text(description),
-            SizedBox(height: 8.0),
+            const SizedBox(height: 8.0),
             Text('Price: $price'),
-            SizedBox(height: 8.0),
+            const SizedBox(height: 8.0),
             if (date != null)
-              Text('Date: ${date!.toLocal().toString().split(' ')[0]}'),
+              Text('Date: ${DateFormat('yyyy-MM-dd').format(date!)}'),
           ],
         ),
       ),
