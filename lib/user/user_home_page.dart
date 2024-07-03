@@ -5,8 +5,16 @@ import 'package:intl/intl.dart';
 import '../auth/login_page.dart';
 import 'event_detail.dart';
 
-class UserHomePage extends StatelessWidget {
-  const UserHomePage({super.key});
+class UserHomePage extends StatefulWidget {
+  const UserHomePage({Key? key}) : super(key: key);
+
+  @override
+  _UserHomePageState createState() => _UserHomePageState();
+}
+
+class _UserHomePageState extends State<UserHomePage> {
+  TextEditingController _searchController = TextEditingController();
+  String _searchQuery = '';
 
   @override
   Widget build(BuildContext context) {
@@ -23,7 +31,8 @@ class UserHomePage extends StatelessWidget {
               Navigator.pushReplacement(
                 context,
                 MaterialPageRoute(
-                    builder: (context) => LoginPage()), // Add const
+                  builder: (context) => const LoginPage(), // Add const
+                ),
               );
             }
           },
@@ -37,7 +46,8 @@ class UserHomePage extends StatelessWidget {
                 Navigator.pushReplacement(
                   context,
                   MaterialPageRoute(
-                      builder: (context) => LoginPage()), // Add const
+                    builder: (context) => const LoginPage(), // Add const
+                  ),
                 );
               }
             },
@@ -45,14 +55,27 @@ class UserHomePage extends StatelessWidget {
         ],
       ),
       body: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
+        mainAxisAlignment: MainAxisAlignment.start,
         children: [
-          Text('Welcome, ${user?.email ?? 'Guest'}'),
-          const SizedBox(height: 20),
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: TextField(
+              controller: _searchController,
+              decoration: InputDecoration(
+                labelText: 'Search Events',
+                border: OutlineInputBorder(),
+                prefixIcon: Icon(Icons.search),
+              ),
+              onChanged: (value) {
+                setState(() {
+                  _searchQuery = value.toLowerCase();
+                });
+              },
+            ),
+          ),
           Expanded(
             child: StreamBuilder<QuerySnapshot>(
-              stream:
-                  FirebaseFirestore.instance.collection('events').snapshots(),
+              stream: FirebaseFirestore.instance.collection('events').snapshots(),
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   return const Center(child: CircularProgressIndicator());
@@ -60,20 +83,29 @@ class UserHomePage extends StatelessWidget {
                 if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
                   return const Center(child: Text('No upcoming events yet.'));
                 }
-                return ListView.builder(
-                  itemCount: snapshot.data!.docs.length,
-                  itemBuilder: (context, index) {
-                    var event = snapshot.data!.docs[index].data()
-                        as Map<String, dynamic>;
-                    var title = event['title'];
-                    var imageUrl = event['imageUrl'];
-                    var date = event['date'] is Timestamp
-                        ? (event['date'] as Timestamp).toDate()
-                        : null;
 
-                    if (title == null || imageUrl == null || date == null) {
-                      return const SizedBox.shrink(); // Skip this item
-                    }
+                var filteredDocs = snapshot.data!.docs.where((doc) {
+                  var data = doc.data() as Map<String, dynamic>;
+                  var title = data['title']?.toString().toLowerCase() ?? '';
+                  var description = data['description']?.toString().toLowerCase() ?? '';
+                  var imageUrl = data['imageUrl'];
+                  var date = data['date'] is Timestamp
+                      ? (data['date'] as Timestamp).toDate()
+                      : null;
+
+                  return (title.contains(_searchQuery) || description.contains(_searchQuery)) &&
+                      title.isNotEmpty && description.isNotEmpty && imageUrl != null && date != null;
+                }).toList();
+
+                return ListView.builder(
+                  itemCount: filteredDocs.length,
+                  itemBuilder: (context, index) {
+                    var event = filteredDocs[index].data() as Map<String, dynamic>;
+                    var title = event['title'];
+                    var description = event['description'];
+                    var price = event['price']?.toString() ?? 'No Price';
+                    var imageUrl = event['imageUrl'];
+                    var date = (event['date'] as Timestamp).toDate();
 
                     return Card(
                       child: ListTile(
@@ -96,9 +128,8 @@ class UserHomePage extends StatelessWidget {
                               MaterialPageRoute(
                                 builder: (context) => EventDetailsPage(
                                   title: title,
-                                  description:
-                                      '', // Since description isn't retrieved here
-                                  price: '', // Since price isn't retrieved here
+                                  description: description,
+                                  price: price,
                                   imageUrl: imageUrl,
                                   date: date,
                                 ),
