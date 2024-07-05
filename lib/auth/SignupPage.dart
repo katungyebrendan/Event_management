@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'category_selection_page.dart';
 
 class SignupPage extends StatefulWidget {
   @override
@@ -184,7 +185,14 @@ class _SignupPageState extends State<SignupPage> {
                               'userType': userType,
                               'createdAt': Timestamp.now(),
                             });
-                            // Navigate to the home page
+                            // Navigate to the category selection page
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => CategorySelectionPage(
+                                    userId: userCredential.user!.uid),
+                              ),
+                            );
                           }
                         } catch (e) {
                           // Handle errors

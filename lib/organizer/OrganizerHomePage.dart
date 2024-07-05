@@ -10,6 +10,15 @@ class OrganizerHomePage extends StatefulWidget {
 
 class _OrganizerHomePageState extends State<OrganizerHomePage> {
   List<Map<String, dynamic>> _events = [];
+  String _selectedCollection = 'dinner'; // Default collection
+
+  final List<String> _collections = [
+    'dinner',
+    'beach parties',
+    'music',
+    'cinema',
+    'sports'
+  ];
 
   @override
   void initState() {
@@ -19,7 +28,7 @@ class _OrganizerHomePageState extends State<OrganizerHomePage> {
 
   Future<void> _loadEvents() async {
     final querySnapshot =
-        await FirebaseFirestore.instance.collection('events').get();
+        await FirebaseFirestore.instance.collection(_selectedCollection).get();
     final events = querySnapshot.docs
         .map((doc) {
           final data = doc.data() as Map<String, dynamic>;
@@ -42,7 +51,7 @@ class _OrganizerHomePageState extends State<OrganizerHomePage> {
     await Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => UploadImagePage(),
+        builder: (context) => UploadImagePage(collection: _selectedCollection),
       ),
     );
     _loadEvents(); // Reload events after creating a new one
@@ -60,12 +69,33 @@ class _OrganizerHomePageState extends State<OrganizerHomePage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            ElevatedButton(
-              onPressed: _createEventAndPickImage,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.blue,
-              ),
-              child: const Text('Add New Event'),
+            Row(
+              children: [
+                DropdownButton<String>(
+                  value: _selectedCollection,
+                  onChanged: (String? newValue) {
+                    setState(() {
+                      _selectedCollection = newValue!;
+                      _loadEvents();
+                    });
+                  },
+                  items: _collections
+                      .map<DropdownMenuItem<String>>((String value) {
+                    return DropdownMenuItem<String>(
+                      value: value,
+                      child: Text(value),
+                    );
+                  }).toList(),
+                ),
+                const SizedBox(width: 10),
+                ElevatedButton(
+                  onPressed: _createEventAndPickImage,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.blue,
+                  ),
+                  child: const Text('Add New Event'),
+                ),
+              ],
             ),
             const SizedBox(height: 20),
             const Text(
