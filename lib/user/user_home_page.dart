@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart' as auth;
 import 'package:intl/intl.dart';
 import '../auth/login_page.dart';
 import 'event_detail.dart';
 import 'search_service.dart';
+import 'models.dart';
+import 'recommendation_service.dart';
 
 class UserHomePage extends StatefulWidget {
   const UserHomePage({Key? key}) : super(key: key);
@@ -16,6 +17,7 @@ class UserHomePage extends StatefulWidget {
 class _UserHomePageState extends State<UserHomePage> {
   final TextEditingController _searchController = TextEditingController();
   final SearchService _searchService = SearchService();
+  final RecommendationService _recommendationService = RecommendationService();
   String _searchQuery = '';
   String _selectedCategory = 'music'; // Default category
   bool _showRecommended = false; // Toggle for showing recommended events
@@ -23,6 +25,14 @@ class _UserHomePageState extends State<UserHomePage> {
   @override
   void initState() {
     super.initState();
+  }
+
+  Future<List<Event>> _fetchRecommendedEvents() async {
+    final user = auth.FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      return await _recommendationService.fetchRecommendedEvents(user.uid);
+    }
+    return [];
   }
 
   @override
@@ -33,7 +43,7 @@ class _UserHomePageState extends State<UserHomePage> {
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () async {
-            await FirebaseAuth.instance.signOut();
+            await auth.FirebaseAuth.instance.signOut();
             if (context.mounted) {
               Navigator.pushReplacement(
                 context,
@@ -48,7 +58,7 @@ class _UserHomePageState extends State<UserHomePage> {
           IconButton(
             icon: const Icon(Icons.logout),
             onPressed: () async {
-              await FirebaseAuth.instance.signOut();
+              await auth.FirebaseAuth.instance.signOut();
               if (context.mounted) {
                 Navigator.pushReplacement(
                   context,
@@ -74,7 +84,7 @@ class _UserHomePageState extends State<UserHomePage> {
                     child: Text('Select Category: $_selectedCategory'),
                   ),
                 ),
-                SizedBox(width: 8),
+                const SizedBox(width: 8),
                 ElevatedButton(
                   onPressed: () {
                     setState(() {
@@ -108,9 +118,9 @@ class _UserHomePageState extends State<UserHomePage> {
             ),
           ),
           Expanded(
-            child: FutureBuilder<List<QueryDocumentSnapshot>>(
+            child: FutureBuilder<List<Event>>(
               future: _showRecommended
-                  ? _searchService.getRecommendedEvents()
+                  ? _fetchRecommendedEvents()
                   : _searchService.searchEvents(
                       _selectedCategory, _searchQuery),
               builder: (context, snapshot) {
@@ -126,14 +136,12 @@ class _UserHomePageState extends State<UserHomePage> {
                 return ListView.builder(
                   itemCount: filteredDocs.length,
                   itemBuilder: (context, index) {
-                    var event =
-                        filteredDocs[index].data() as Map<String, dynamic>;
-                    var title = event['title'] ?? 'No Title';
-                    var description = event['description'] ?? 'No Description';
-                    var price = event['price']?.toString() ?? 'No Price';
-                    var imageUrl = event['imageUrl'] ?? '';
-                    var date = (event['date'] as Timestamp?)?.toDate() ??
-                        DateTime.now(); // Default to now if date is null
+                    var event = filteredDocs[index];
+                    var title = event.title;
+                    var description = event.description;
+                    var price = event.price;
+                    var imageUrl = event.imageUrl;
+                    var date = event.date;
 
                     return Card(
                       child: Column(
@@ -217,34 +225,61 @@ class _UserHomePageState extends State<UserHomePage> {
       builder: (BuildContext context) {
         return AlertDialog(
           title: const Text('Select Category'),
-          content: DropdownButtonFormField<String>(
-            value: _selectedCategory,
-            items: const [
-              DropdownMenuItem(value: 'music', child: Text('Music')),
-              DropdownMenuItem(value: 'sports', child: Text('Sports')),
-              DropdownMenuItem(value: 'cinema', child: Text('Cinema')),
-              DropdownMenuItem(
-                  value: 'beach parties', child: Text('Beach Parties')),
-              DropdownMenuItem(value: 'dinner', child: Text('Dinner')),
-            ],
-            onChanged: (String? newValue) {
-              setState(() {
-                _selectedCategory = newValue!;
-              });
-              Navigator.pop(context);
-            },
-            decoration: const InputDecoration(
-              border: OutlineInputBorder(),
+          content: SingleChildScrollView(
+            child: ListBody(
+              children: [
+                GestureDetector(
+                  child: const Text('Music'),
+                  onTap: () {
+                    setState(() {
+                      _selectedCategory = 'music';
+                    });
+                    Navigator.of(context).pop();
+                  },
+                ),
+                const SizedBox(height: 10),
+                GestureDetector(
+                  child: const Text('Dinner'),
+                  onTap: () {
+                    setState(() {
+                      _selectedCategory = 'dinner';
+                    });
+                    Navigator.of(context).pop();
+                  },
+                ),
+                const SizedBox(height: 10),
+                GestureDetector(
+                  child: const Text('Sports'),
+                  onTap: () {
+                    setState(() {
+                      _selectedCategory = 'sports';
+                    });
+                    Navigator.of(context).pop();
+                  },
+                ),
+                const SizedBox(height: 10),
+                GestureDetector(
+                  child: const Text('Cinema'),
+                  onTap: () {
+                    setState(() {
+                      _selectedCategory = 'cinema';
+                    });
+                    Navigator.of(context).pop();
+                  },
+                ),
+                const SizedBox(height: 10),
+                GestureDetector(
+                  child: const Text('Beach Parties'),
+                  onTap: () {
+                    setState(() {
+                      _selectedCategory = 'beach_parties';
+                    });
+                    Navigator.of(context).pop();
+                  },
+                ),
+              ],
             ),
           ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.pop(context);
-              },
-              child: const Text('Cancel'),
-            ),
-          ],
         );
       },
     );

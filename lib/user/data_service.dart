@@ -8,17 +8,26 @@ class DataService {
   Future<User> fetchUserInterests(String userId) async {
     DocumentSnapshot userDoc =
         await _db.collection('userInterests').doc(userId).get();
-    List<String> preferredCategories = List<String>.from(userDoc['categories']);
-    return User(id: userId, preferredCategories: preferredCategories);
+    if (userDoc.exists) {
+      List<String> preferredCategories =
+          List<String>.from(userDoc['categories']);
+      return User(id: userId, preferredCategories: preferredCategories);
+    } else {
+      throw Exception("User document does not exist");
+    }
   }
 
   // Fetch user search history
   Future<UserSearchHistory> fetchUserSearchHistory(String userId) async {
     DocumentSnapshot historyDoc =
         await _db.collection('userSearchHistories').doc(userId).get();
-    List<String> searchKeywords =
-        List<String>.from(historyDoc['searchKeywords']);
-    return UserSearchHistory(userId: userId, searchKeywords: searchKeywords);
+    if (historyDoc.exists) {
+      List<String> searchKeywords =
+          List<String>.from(historyDoc['searchKeywords']);
+      return UserSearchHistory(userId: userId, searchKeywords: searchKeywords);
+    } else {
+      throw Exception("User search history document does not exist");
+    }
   }
 
   // Fetch events from specific collections
@@ -42,6 +51,10 @@ class DataService {
           category: collection,
           title: doc['title'] ?? 'No Title',
           keywords: List<String>.from(doc['keywords'] ?? []),
+          description: doc['description'] ?? 'No Description',
+          price: doc['price'] ?? 'No Price',
+          imageUrl: doc['imageUrl'] ?? '',
+          date: (doc['date'] as Timestamp).toDate(),
         );
       }).toList());
     }
