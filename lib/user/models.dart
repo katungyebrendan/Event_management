@@ -38,21 +38,21 @@ class Event {
   final String id;
   final String category;
   final String title;
-  final List<String> keywords;
   final String description;
-  final String price;
+  final double price; // Change to double
   final String imageUrl;
   final DateTime date;
+  final String location; // Add this field
 
   Event({
     required this.id,
     required this.category,
     required this.title,
-    required this.keywords,
     required this.description,
     required this.price,
     required this.imageUrl,
     required this.date,
+    required this.location,
   });
 
   factory Event.fromDocument(DocumentSnapshot doc, String category) {
@@ -60,10 +60,10 @@ class Event {
       id: doc.id,
       category: category,
       title: doc['title'] ?? 'No Title',
-      keywords: List<String>.from(doc['keywords'] ?? []),
       description: doc['description'] ?? 'No Description',
-      price: doc['price'] ?? 'No Price',
+      price: (doc['price'] as num).toDouble(), // Convert price to double
       imageUrl: doc['imageUrl'] ?? '',
+      location: doc['location'] ?? 'No location',
       date: (doc['date'] as Timestamp).toDate(),
     );
   }

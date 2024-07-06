@@ -38,7 +38,7 @@ class DataService {
       'dinner',
       'sports',
       'cinema',
-      'beach_parties',
+      'beach parties',
     ];
 
     List<Event> events = [];
@@ -50,10 +50,10 @@ class DataService {
           id: doc.id,
           category: collection,
           title: doc['title'] ?? 'No Title',
-          keywords: List<String>.from(doc['keywords'] ?? []),
           description: doc['description'] ?? 'No Description',
           price: doc['price'] ?? 'No Price',
           imageUrl: doc['imageUrl'] ?? '',
+          location: doc['location'] ?? 'No location',
           date: (doc['date'] as Timestamp).toDate(),
         );
       }).toList());

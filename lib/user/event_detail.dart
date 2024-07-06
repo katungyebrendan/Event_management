@@ -1,61 +1,90 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart'; // Add this import for date formatting
+import 'package:intl/intl.dart';
 
 class EventDetailsPage extends StatelessWidget {
   final String title;
   final String description;
   final String price;
   final String imageUrl;
-  final DateTime? date; // Make date nullable
+  final String location;
+  final DateTime date;
 
-  EventDetailsPage({
+  const EventDetailsPage({
+    Key? key,
     required this.title,
     required this.description,
     required this.price,
     required this.imageUrl,
-    this.date, // Make date nullable
-  });
+    required this.location,
+    required this.date,
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('FunExpo'),
+        title: const Text('Event Details'),
       ),
-      body: RawScrollbar(
-        thumbVisibility: true,
-        thickness: 10, // non-zero thickness
-        child: SingleChildScrollView(
-          physics: const AlwaysScrollableScrollPhysics(), // allow scrolling always
-          child: Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: <Widget>[
-                imageUrl.isNotEmpty
-                   ? Image.network(imageUrl)
-                    : const Placeholder(
-                        fallbackHeight: 200.0,
-                        fallbackWidth: double.infinity,
-                      ),
-                const SizedBox(height: 16.0),
-                Text(
-                  title,
-                  style: const TextStyle(
-                    fontSize: 24.0,
-                    fontWeight: FontWeight.bold,
+      body: SingleChildScrollView(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            imageUrl.isNotEmpty
+                ? Image.network(
+                    imageUrl,
+                    width: double.infinity,
+                    height: 250,
+                    fit: BoxFit.cover,
+                  )
+                : Container(
+                    color: Colors.grey,
+                    width: double.infinity,
+                    height: 250,
+                    child: const Icon(Icons.image, size: 100),
                   ),
-                ),
-                const SizedBox(height: 8.0),
-                Text(description),
-                const SizedBox(height: 8.0),
-                Text('Price: $price'),
-                const SizedBox(height: 8.0),
-                if (date!= null)
-                  Text('Date: ${DateFormat('yyyy-MM-dd').format(date!)}'),
-              ],
+            Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: const TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    DateFormat('yyyy-MM-dd').format(date),
+                    style: TextStyle(
+                      color: Colors.grey[600],
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Location: $location',
+                    style: TextStyle(
+                      color: Colors.grey[600],
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Price: $price',
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    description,
+                    style: const TextStyle(fontSize: 16),
+                  ),
+                ],
+              ),
             ),
-          ),
+          ],
         ),
       ),
     );

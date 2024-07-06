@@ -125,6 +125,21 @@ class _UploadImagePageState extends State<UploadImagePage> {
     }
   }
 
+  Future<void> _selectDate() async {
+    DateTime? selectedDate = await showDatePicker(
+      context: context,
+      initialDate: _date,
+      firstDate: DateTime(2000),
+      lastDate: DateTime(2101),
+    );
+
+    if (selectedDate != null && selectedDate != _date) {
+      setState(() {
+        _date = selectedDate;
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -229,6 +244,34 @@ class _UploadImagePageState extends State<UploadImagePage> {
                     onSaved: (value) {
                       _price = double.parse(value!);
                     },
+                  ),
+                ),
+                Container(
+                  margin: const EdgeInsets.symmetric(vertical: 10),
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(8.0),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black12,
+                        blurRadius: 10.0,
+                        spreadRadius: 2.0,
+                      ),
+                    ],
+                  ),
+                  child: TextFormField(
+                    readOnly: true,
+                    decoration: InputDecoration(
+                      labelText: 'Date',
+                      border: InputBorder.none,
+                      suffixIcon: Icon(Icons.calendar_today),
+                    ),
+                    controller: TextEditingController(
+                      text:
+                          "${_date.toLocal()}".split(' ')[0], // Format the date
+                    ),
+                    onTap: _selectDate,
                   ),
                 ),
                 Container(
