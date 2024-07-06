@@ -1,3 +1,5 @@
+// data_service.dart
+
 import 'package:cloud_firestore/cloud_firestore.dart'; // Import for Firestore
 import 'package:firebase_auth/firebase_auth.dart'
     as auth; // Alias Firebase Auth
@@ -36,13 +38,21 @@ class SearchService {
   }
 
   // Search events based on query
-  Future<List<Event>> searchEvents(String category, String query) async {
-    final snapshot = await _firestore.collection(category).get();
-    return snapshot.docs.map((doc) {
-      return Event.fromDocument(doc, category);
-    }).where((event) {
-      return event.title.toLowerCase().contains(query.toLowerCase()) ||
-          event.description.toLowerCase().contains(query.toLowerCase());
-    }).toList();
+  Future<List<Event>> searchEvents(String query) async {
+    final categories = ['music', 'cinema', 'sports', 'dinner', 'beach_parties'];
+    List<Event> events = [];
+
+    for (String category in categories) {
+      final snapshot = await _firestore.collection(category).get();
+      events.addAll(snapshot.docs.map((doc) {
+        return Event.fromDocument(doc, category);
+      }).where((event) {
+        return event.title.toLowerCase().contains(query.toLowerCase()) ||
+            event.description.toLowerCase().contains(query.toLowerCase()) ||
+            event.location.toLowerCase().contains(query.toLowerCase());
+      }).toList());
+    }
+
+    return events;
   }
 }

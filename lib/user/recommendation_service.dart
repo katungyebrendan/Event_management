@@ -25,8 +25,7 @@ class RecommendationService {
     recommendedEvents = recommendedEvents.where((event) {
       return searchHistory.searchKeywords.any((keyword) =>
           event.title.toLowerCase().contains(keyword.toLowerCase()) ||
-          event.keywords
-              .any((k) => k.toLowerCase().contains(keyword.toLowerCase())));
+          event.description.toLowerCase().contains(keyword.toLowerCase()));
     }).toList();
 
     return recommendedEvents;

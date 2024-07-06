@@ -3,9 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart' as auth;
 import 'package:intl/intl.dart';
 import '../auth/login_page.dart';
 import 'event_detail.dart';
-import 'search_service.dart';
-import 'models.dart';
-import 'recommendation_service.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class UserHomePage extends StatefulWidget {
   const UserHomePage({Key? key}) : super(key: key);
@@ -16,10 +14,6 @@ class UserHomePage extends StatefulWidget {
 
 class _UserHomePageState extends State<UserHomePage> {
   final TextEditingController _searchController = TextEditingController();
-  final SearchService _searchService = SearchService();
-  final RecommendationService _recommendationService = RecommendationService();
-  String _searchQuery = '';
-  String _selectedCategory = 'music'; // Default category
   bool _showRecommended = false; // Toggle for showing recommended events
 
   @override
@@ -27,12 +21,23 @@ class _UserHomePageState extends State<UserHomePage> {
     super.initState();
   }
 
-  Future<List<Event>> _fetchRecommendedEvents() async {
+  Future<List<Map<String, dynamic>>> _fetchRecommendedEvents() async {
     final user = auth.FirebaseAuth.instance.currentUser;
     if (user != null) {
-      return await _recommendationService.fetchRecommendedEvents(user.uid);
+      // Implement your logic to fetch recommended events for the user
     }
     return [];
+  }
+
+  Future<List<Map<String, dynamic>>> _fetchEvents(String category) async {
+    final querySnapshot =
+        await FirebaseFirestore.instance.collection(category).get();
+    final events = querySnapshot.docs.map((doc) {
+      final data = doc.data() as Map<String, dynamic>;
+      data['id'] = doc.id;
+      return data;
+    }).toList();
+    return events;
   }
 
   @override
@@ -76,30 +81,6 @@ class _UserHomePageState extends State<UserHomePage> {
         children: [
           Padding(
             padding: const EdgeInsets.all(8.0),
-            child: Row(
-              children: [
-                Expanded(
-                  child: ElevatedButton(
-                    onPressed: () => _showCategoryDialog(context),
-                    child: Text('Select Category: $_selectedCategory'),
-                  ),
-                ),
-                const SizedBox(width: 8),
-                ElevatedButton(
-                  onPressed: () {
-                    setState(() {
-                      _showRecommended = !_showRecommended;
-                    });
-                  },
-                  child: Text(_showRecommended
-                      ? 'Show All Events'
-                      : 'Show Recommended'),
-                ),
-              ],
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.all(8.0),
             child: TextField(
               controller: _searchController,
               decoration: const InputDecoration(
@@ -109,179 +90,174 @@ class _UserHomePageState extends State<UserHomePage> {
               ),
               onChanged: (value) {
                 setState(() {
-                  _searchQuery = value.toLowerCase();
+                  // Handle search query change
                 });
-                if (_searchQuery.isNotEmpty) {
-                  _searchService.storeSearchKeywords(_searchQuery);
-                }
               },
             ),
           ),
-          Expanded(
-            child: FutureBuilder<List<Event>>(
-              future: _showRecommended
-                  ? _fetchRecommendedEvents()
-                  : _searchService.searchEvents(
-                      _selectedCategory, _searchQuery),
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(child: CircularProgressIndicator());
-                }
-                if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                  return const Center(child: Text('No upcoming events yet.'));
-                }
+          if (_showRecommended)
+            Expanded(
+              child: FutureBuilder<List<Map<String, dynamic>>>(
+                future: _fetchRecommendedEvents(),
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const Center(child: CircularProgressIndicator());
+                  }
+                  if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                    return const Center(
+                        child: Text('No recommended events yet.'));
+                  }
 
-                var filteredDocs = snapshot.data!;
+                  var events = snapshot.data!;
 
-                return ListView.builder(
-                  itemCount: filteredDocs.length,
-                  itemBuilder: (context, index) {
-                    var event = filteredDocs[index];
-                    var title = event.title;
-                    var description = event.description;
-                    var price = event.price;
-                    var imageUrl = event.imageUrl;
-                    var date = event.date;
-
-                    return Card(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          imageUrl.isNotEmpty
-                              ? Image.network(
-                                  imageUrl,
-                                  width: double.infinity,
-                                  height: 300,
-                                  fit: BoxFit.cover,
-                                )
-                              : Container(
-                                  color: Colors.grey,
-                                  width: double.infinity,
-                                  height: 300,
-                                  child: const Icon(Icons.image, size: 100),
-                                ),
-                          Padding(
-                            padding: const EdgeInsets.all(8.0),
-                            child: Text(
-                              title,
-                              style: const TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ),
-                          Padding(
-                            padding:
-                                const EdgeInsets.symmetric(horizontal: 8.0),
-                            child: Text(
-                              DateFormat('yyyy-MM-dd').format(date),
-                              style: TextStyle(color: Colors.grey[600]),
-                            ),
-                          ),
-                          Padding(
-                            padding: const EdgeInsets.all(8.0),
-                            child: Text(
-                              description,
-                              maxLines: 2,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                          Padding(
-                            padding: const EdgeInsets.all(8.0),
-                            child: ElevatedButton(
-                              onPressed: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) => EventDetailsPage(
-                                      title: title,
-                                      description: description,
-                                      price: price,
-                                      imageUrl: imageUrl,
-                                      date: date,
-                                    ),
-                                  ),
-                                );
-                              },
-                              child: const Text('Details'),
-                            ),
-                          ),
-                        ],
-                      ),
-                    );
-                  },
-                );
-              },
+                  return ListView.builder(
+                    itemCount: events.length,
+                    itemBuilder: (context, index) {
+                      var event = events[index];
+                      return EventCard(event: event);
+                    },
+                  );
+                },
+              ),
+            )
+          else
+            Expanded(
+              child: ListView(
+                children: [
+                  _buildCategorySection('Music'),
+                  _buildCategorySection('Cinema'),
+                  _buildCategorySection('Sports'),
+                  _buildCategorySection('Dinner'),
+                  _buildCategorySection('Beach Parties'),
+                ],
+              ),
             ),
-          ),
         ],
       ),
     );
   }
 
-  void _showCategoryDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('Select Category'),
-          content: SingleChildScrollView(
-            child: ListBody(
-              children: [
-                GestureDetector(
-                  child: const Text('Music'),
-                  onTap: () {
-                    setState(() {
-                      _selectedCategory = 'music';
-                    });
-                    Navigator.of(context).pop();
-                  },
+  Widget _buildCategorySection(String category) {
+    return FutureBuilder<List<Map<String, dynamic>>>(
+      future: _fetchEvents(category.toLowerCase().replaceAll(' ', '_')),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        }
+        if (!snapshot.hasData || snapshot.data!.isEmpty) {
+          return const Center(child: Text('No events available.'));
+        }
+
+        var events = snapshot.data!;
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Text(
+                category,
+                style: const TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
                 ),
-                const SizedBox(height: 10),
-                GestureDetector(
-                  child: const Text('Dinner'),
-                  onTap: () {
-                    setState(() {
-                      _selectedCategory = 'dinner';
-                    });
-                    Navigator.of(context).pop();
-                  },
-                ),
-                const SizedBox(height: 10),
-                GestureDetector(
-                  child: const Text('Sports'),
-                  onTap: () {
-                    setState(() {
-                      _selectedCategory = 'sports';
-                    });
-                    Navigator.of(context).pop();
-                  },
-                ),
-                const SizedBox(height: 10),
-                GestureDetector(
-                  child: const Text('Cinema'),
-                  onTap: () {
-                    setState(() {
-                      _selectedCategory = 'cinema';
-                    });
-                    Navigator.of(context).pop();
-                  },
-                ),
-                const SizedBox(height: 10),
-                GestureDetector(
-                  child: const Text('Beach Parties'),
-                  onTap: () {
-                    setState(() {
-                      _selectedCategory = 'beach_parties';
-                    });
-                    Navigator.of(context).pop();
-                  },
-                ),
-              ],
+              ),
             ),
-          ),
+            SizedBox(
+              height: 290, // Reduced height to avoid overflow
+              child: ListView.builder(
+                scrollDirection: Axis.horizontal,
+                itemCount: events.length,
+                itemBuilder: (context, index) {
+                  var event = events[index];
+                  return SizedBox(
+                    width: 200,
+                    child: EventCard(event: event),
+                  );
+                },
+              ),
+            ),
+          ],
         );
       },
+    );
+  }
+}
+
+class EventCard extends StatelessWidget {
+  final Map<String, dynamic> event;
+
+  const EventCard({required this.event, Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    final date = event['date'];
+    DateTime? eventDate;
+    if (date is Timestamp) {
+      eventDate = date.toDate();
+    } else if (date is DateTime) {
+      eventDate = date;
+    }
+
+    return Card(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          event['imageUrl'] != null && event['imageUrl'].isNotEmpty
+              ? Image.network(
+                  event['imageUrl'],
+                  width: double.infinity,
+                  height: 150, // Adjusted height to avoid overflow
+                  fit: BoxFit.cover,
+                )
+              : Container(
+                  color: Colors.grey,
+                  width: double.infinity,
+                  height: 150, // Adjusted height to avoid overflow
+                  child: const Icon(Icons.image, size: 100),
+                ),
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Text(
+              event['title'] ?? 'No Title',
+              style: const TextStyle(
+                fontSize: 16, // Adjusted font size to avoid overflow
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 8.0),
+            child: Text(
+              eventDate != null
+                  ? DateFormat('yyyy-MM-dd').format(eventDate)
+                  : 'No Date',
+              style: TextStyle(color: Colors.grey[600]),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: ElevatedButton(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => EventDetailsPage(
+                      title: event['title'] ?? 'No Title',
+                      description: event['description'] ?? 'No Description',
+                      price: event['price']?.toString() ?? 'No Price',
+                      imageUrl: event['imageUrl'] ?? '',
+                      location: event['location'] ?? '',
+                      date: eventDate ?? DateTime.now(),
+                    ),
+                  ),
+                );
+              },
+              child: const Text('Details'),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
