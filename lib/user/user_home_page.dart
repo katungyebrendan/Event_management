@@ -4,6 +4,8 @@ import 'package:intl/intl.dart';
 import '../auth/login_page.dart';
 import 'event_detail.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'notification_page.dart';
+import 'notification_service.dart'; // Import NotificationService
 
 class UserHomePage extends StatefulWidget {
   const UserHomePage({Key? key}) : super(key: key);
@@ -15,10 +17,13 @@ class UserHomePage extends StatefulWidget {
 class _UserHomePageState extends State<UserHomePage> {
   final TextEditingController _searchController = TextEditingController();
   bool _showRecommended = false; // Toggle for showing recommended events
+  late NotificationService _notificationService;
 
   @override
   void initState() {
     super.initState();
+    _notificationService =
+        NotificationService(context); // Initialize NotificationService
   }
 
   Future<List<Map<String, dynamic>>> _fetchRecommendedEvents() async {
@@ -60,6 +65,19 @@ class _UserHomePageState extends State<UserHomePage> {
           },
         ),
         actions: [
+          IconButton(
+            icon: const Icon(Icons.notifications),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => NotificationPage(
+                    notifications: _notificationService.notifications,
+                  ),
+                ),
+              );
+            },
+          ),
           IconButton(
             icon: const Icon(Icons.logout),
             onPressed: () async {
