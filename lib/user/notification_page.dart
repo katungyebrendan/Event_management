@@ -4,8 +4,7 @@ import 'package:intl/intl.dart';
 class NotificationPage extends StatelessWidget {
   final List<Map<String, dynamic>> notifications;
 
-  const NotificationPage({required this.notifications, Key? key})
-      : super(key: key);
+  const NotificationPage({required this.notifications, Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {

@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+import 'map_page.dart';
 import 'package:flutter_stripe/flutter_stripe.dart';
-import 'package:http/http.dart' as http; // Add this import
-import 'dart:convert'; // Add this import
 
 class EventDetailsPage extends StatefulWidget {
   final String title;
@@ -21,6 +22,24 @@ class EventDetailsPage extends StatefulWidget {
     required this.location,
     required this.date,
   }) : super(key: key);
+
+  Future<Map<String, double>> getCoordinates(String locationName) async {
+    final apiKey = 'YOUR_API_KEY'; // Replace with your Google Maps Geocoding API key
+    final url = 'https://maps.googleapis.com/maps/api/geocode/json?address=$locationName&key=$apiKey';
+
+    final response = await http.get(Uri.parse(url));
+    if (response.statusCode == 200) {
+      final data = json.decode(response.body);
+      if (data['results'].isNotEmpty) {
+        final location = data['results'][0]['geometry']['location'];
+        return {
+          'latitude': location['lat'],
+          'longitude': location['lng'],
+        };
+      }
+    }
+    return {'latitude': 0.0, 'longitude': 0.0};
+  }
 
   @override
   State<EventDetailsPage> createState() => _EventDetailsPageState();
@@ -69,10 +88,26 @@ class _EventDetailsPageState extends State<EventDetailsPage> {
                     ),
                   ),
                   const SizedBox(height: 8),
-                  Text(
-                    'Location: ${widget.location}',
-                    style: TextStyle(
-                      color: Colors.grey[600],
+                  GestureDetector(
+                    onTap: () async {
+                      final coordinates = await widget.getCoordinates(widget.location);
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => MapPage(
+                            location: widget.location,
+                            latitude: coordinates['latitude']!,
+                            longitude: coordinates['longitude']!,
+                          ),
+                        ),
+                      );
+                    },
+                    child: Text(
+                      'Location: ${widget.location}',
+                      style: TextStyle(
+                        color: Colors.blue,
+                        decoration: TextDecoration.underline,
+                      ),
                     ),
                   ),
                   const SizedBox(height: 8),
@@ -88,7 +123,7 @@ class _EventDetailsPageState extends State<EventDetailsPage> {
                     widget.description,
                     style: const TextStyle(fontSize: 16),
                   ),
-                  SizedBox(height: 20),
+                  const SizedBox(height: 20),
                   ElevatedButton(
                     onPressed: () {
                       Navigator.push(
@@ -101,7 +136,7 @@ class _EventDetailsPageState extends State<EventDetailsPage> {
                         ),
                       );
                     },
-                    child: Text('Make Payment'),
+                    child: const Text('Make Payment'),
                   ),
                 ],
               ),
@@ -199,15 +234,14 @@ class _PaymentFormState extends State<PaymentForm> {
       'amount': amount,
       'currency': currency,
       'payment_method_types[]': 'card',
-      'etup_future_usage': 'off_session',
-      'hipping[name]': name,
-      'hipping[address][line1]': address,
-      'hipping[address][postal_code]': pin,
-      'hipping[address][country]': country,
+      'setup_future_usage': 'off_session',
+      'shipping[name]': name,
+      'shipping[address][line1]': address,
+      'shipping[address][postal_code]': pin,
+      'shipping[address][country]': country,
     };
 
-    final response =
-        await http.post(Uri.parse(url), headers: headers, body: body);
+    final response = await http.post(Uri.parse(url), headers: headers, body: body);
 
     if (response.statusCode == 200) {
       return jsonDecode(response.body); // Use jsonDecode from dart:convert
@@ -224,207 +258,209 @@ class _PaymentFormState extends State<PaymentForm> {
       ),
       body: Padding(
         padding: const EdgeInsets.all(8.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              "My Payment",
-              style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
-            ),
-            SizedBox(height: 6),
-            Row(
-              children: [
-                Expanded(
-                  flex: 5,
-                  child: TextFormField(
-                    controller: amountController,
-                    decoration: const InputDecoration(
-                      labelText: "Amount",
-                      hintText: "Any amount you like",
-                    ),
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Please enter an amount';
-                      }
-                      return null;
-                    },
-                  ),
-                ),
-                SizedBox(width: 10),
-                DropdownButton<String>(
-                  value: selectedCurrency,
-                  onChanged: (String? value) {
-                    setState(() {
-                      selectedCurrency = value!;
-                    });
-                  },
-                  items: currencyList
-                      .map<DropdownMenuItem<String>>((String value) {
-                    return DropdownMenuItem<String>(
-                      value: value,
-                      child: Text(value),
-                    );
-                  }).toList(),
-                )
-              ],
-            ),
-            SizedBox(height: 10),
-            TextFormField(
-              controller: nameController,
-              decoration: const InputDecoration(
-                labelText: "Name",
-                hintText: "Ex. John Doe",
+        child: Form(
+          key: _formKey,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                "My Payment",
+                style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
               ),
-              validator: (value) {
-                if (value == null || value.isEmpty) {
-                  return 'Please enter your name';
-                }
-                return null;
-              },
-            ),
-            SizedBox(height: 10),
-            TextFormField(
-              controller: addressController,
-              decoration: const InputDecoration(
-                labelText: "Address Line",
-                hintText: "Ex. 123 Main St",
-              ),
-              validator: (value) {
-                if (value == null || value.isEmpty) {
-                  return 'Please enter your address';
-                }
-                return null;
-              },
-            ),
-            SizedBox(height: 10),
-            Row(
-              children: [
-                Expanded(
-                  flex: 5,
-                  child: TextFormField(
-                    decoration: const InputDecoration(
-                      labelText: "City",
-                      hintText: "Ex. New Delhi",
+              const SizedBox(height: 6),
+              Row(
+                children: [
+                  Expanded(
+                    flex: 5,
+                    child: TextFormField(
+                      controller: amountController,
+                      decoration: const InputDecoration(
+                        labelText: "Amount",
+                        hintText: "Any amount you like",
+                      ),
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Please enter an amount';
+                        }
+                        return null;
+                      },
                     ),
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Please enter your city';
-                      }
-                      return null;
-                    },
                   ),
-                ),
-                SizedBox(width: 10),
-                Expanded(
-                  flex: 5,
-                  child: TextFormField(
-                    decoration: const InputDecoration(
-                      labelText: "State (Short code)",
-                      hintText: "Ex. DL for Delhi",
-                    ),
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Please enter your state';
-                      }
-                      return null;
-                    },
-                  ),
-                ),
-              ],
-            ),
-            SizedBox(height: 10),
-            Row(
-              children: [
-                Expanded(
-                  flex: 5,
-                  child: TextFormField(
-                    controller: countryController,
-                    decoration: const InputDecoration(
-                      labelText: "Country (Short Code)",
-                      hintText: "Ex. IN for India",
-                    ),
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Please enter your country';
-                      }
-                      return null;
-                    },
-                  ),
-                ),
-                SizedBox(width: 10),
-                Expanded(
-                  flex: 5,
-                  child: TextFormField(
-                    controller: pincodeController,
-                    decoration: const InputDecoration(
-                      labelText: "Pincode",
-                      hintText: "Ex. 123456",
-                    ),
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Please enter your pincode';
-                      }
-                      return null;
-                    },
-                  ),
-                ),
-              ],
-            ),
-            SizedBox(height: 12),
-            SizedBox(
-              height: 50,
-              width: double.infinity,
-              child: ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.blueAccent.shade400),
-                child: Text(
-                  "Proceed to Pay",
-                  style: TextStyle(color: Colors.white, fontSize: 16),
-                ),
-                onPressed: () async {
-                  if (_formKey.currentState!.validate()) {
-                    await initPaymentSheet();
-
-                    try {
-                      await Stripe.instance.presentPaymentSheet();
-
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text(
-                            "Payment Done",
-                            style: TextStyle(color: Colors.white),
-                          ),
-                          backgroundColor: Colors.green,
-                        ),
-                      );
-
+                  const SizedBox(width: 10),
+                  DropdownButton<String>(
+                    value: selectedCurrency,
+                    onChanged: (String? value) {
                       setState(() {
-                        hasDonated = true;
+                        selectedCurrency = value!;
                       });
-                      nameController.clear();
-                      addressController.clear();
-                      countryController.clear();
-                      pincodeController.clear();
-                    } catch (e) {
-                      print("payment sheet failed");
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text(
-                            "Payment Failed",
-                            style: TextStyle(color: Colors.white),
-                          ),
-                          backgroundColor: Colors.redAccent,
-                        ),
+                    },
+                    items: currencyList
+                        .map<DropdownMenuItem<String>>((String value) {
+                      return DropdownMenuItem<String>(
+                        value: value,
+                        child: Text(value),
                       );
-                    }
+                    }).toList(),
+                  )
+                ],
+              ),
+              const SizedBox(height: 10),
+              TextFormField(
+                controller: nameController,
+                decoration: const InputDecoration(
+                  labelText: "Name",
+                  hintText: "Ex. John Doe",
+                ),
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Please enter your name';
                   }
+                  return null;
                 },
               ),
-            )
-          ],
+              const SizedBox(height: 10),
+              TextFormField(
+                controller: addressController,
+                decoration: const InputDecoration(
+                  labelText: "Address Line",
+                  hintText: "Ex. 123 Main St",
+                ),
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Please enter your address';
+                  }
+                  return null;
+                },
+              ),
+              const SizedBox(height: 10),
+              Row(
+                children: [
+                  Expanded(
+                    flex: 5,
+                    child: TextFormField(
+                      decoration: const InputDecoration(
+                        labelText: "City",
+                        hintText: "Ex. New Delhi",
+                      ),
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Please enter your city';
+                        }
+                        return null;
+                      },
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    flex: 5,
+                    child: TextFormField(
+                      decoration: const InputDecoration(
+                        labelText: "State (Short code)",
+                        hintText: "Ex. DL for Delhi",
+                      ),
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Please enter your state';
+                        }
+                        return null;
+                      },
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 10),
+              Row(
+                children: [
+                  Expanded(
+                    flex: 5,
+                    child: TextFormField(
+                      controller: countryController,
+                      decoration: const InputDecoration(
+                        labelText: "Country (Short Code)",
+                        hintText: "Ex. IN for India",
+                      ),
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Please enter your country';
+                        }
+                        return null;
+                      },
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    flex: 5,
+                    child: TextFormField(
+                      controller: pincodeController,
+                      decoration: const InputDecoration(
+                        labelText: "Pincode",
+                        hintText: "Ex. 123456",
+                      ),
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Please enter your pincode';
+                        }
+                        return null;
+                      },
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              SizedBox(
+                height: 50,
+                width: double.infinity,
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.blueAccent.shade400),
+                  child: const Text(
+                    "Proceed to Pay",
+                    style: TextStyle(color: Colors.white, fontSize: 16),
+                  ),
+                  onPressed: () async {
+                    if (_formKey.currentState!.validate()) {
+                      await initPaymentSheet();
+
+                      try {
+                        await Stripe.instance.presentPaymentSheet();
+
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: const Text(
+                              "Payment Done",
+                              style: TextStyle(color: Colors.white),
+                            ),
+                            backgroundColor: Colors.green,
+                          ),
+                        );
+
+                        setState(() {
+                          hasDonated = true;
+                        });
+                        nameController.clear();
+                        addressController.clear();
+                        countryController.clear();
+                        pincodeController.clear();
+                      } catch (e) {
+                        print("payment sheet failed");
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: const Text(
+                              "Payment Failed",
+                              style: TextStyle(color: Colors.white),
+                            ),
+                            backgroundColor: Colors.redAccent,
+                          ),
+                        );
+                      }
+                    }
+                  },
+                ),
+              )
+            ],
+          ),
         ),
       ),
     );
   }
 }
-
