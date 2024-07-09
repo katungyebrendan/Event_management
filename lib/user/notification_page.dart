@@ -4,8 +4,7 @@ import 'package:intl/intl.dart';
 class NotificationPage extends StatelessWidget {
   final List<Map<String, dynamic>> notifications;
 
-  const NotificationPage({required this.notifications, Key? key})
-      : super(key: key);
+  const NotificationPage({required this.notifications, Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -19,8 +18,7 @@ class NotificationPage extends StatelessWidget {
           final notification = notifications[index];
           final title = notification['title'] ?? 'No Title';
           final description = notification['description'] ?? 'No Description';
-          final price = notification['price']?.toString() ??
-              'No Price'; // Ensure price is a String
+          final price = notification['price']?.toString() ?? 'No Price'; // Ensure price is a String
           final location = notification['location'] ?? '';
           final image = notification['image'] ?? '';
           final date = notification['date'];

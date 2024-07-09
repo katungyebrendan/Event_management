@@ -18,6 +18,7 @@ class _UserHomePageState extends State<UserHomePage> {
   final TextEditingController _searchController = TextEditingController();
   bool _showRecommended = false; // Toggle for showing recommended events
   late NotificationService _notificationService;
+  int _selectedIndex = 0; // Track the selected tab
 
   @override
   void initState() {
@@ -43,6 +44,12 @@ class _UserHomePageState extends State<UserHomePage> {
       return data;
     }).toList();
     return events;
+  }
+
+  void _onItemTapped(int index) {
+    setState(() {
+      _selectedIndex = index;
+    });
   }
 
   @override
@@ -94,64 +101,131 @@ class _UserHomePageState extends State<UserHomePage> {
           ),
         ],
       ),
-      body: Column(
-        mainAxisAlignment: MainAxisAlignment.start,
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: TextField(
-              controller: _searchController,
-              decoration: const InputDecoration(
-                labelText: 'Search Events',
-                border: OutlineInputBorder(),
-                prefixIcon: Icon(Icons.search),
-              ),
-              onChanged: (value) {
-                setState(() {
-                  // Handle search query change
-                });
+      body: _selectedIndex == 0
+          ? _buildHomeContent()
+          : _selectedIndex == 1
+              ? _buildExploreContent()
+              : _selectedIndex == 2
+                  ? _buildTicketsContent()
+                  : _buildProfileContent(),
+      bottomNavigationBar: Container(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.only(
+            topLeft: Radius.circular(10.0),
+            topRight: Radius.circular(10.0),
+            bottomLeft: Radius.circular(10.0),
+            bottomRight: Radius.circular(10.0),
+          ),
+        ),
+        child: BottomNavigationBar(
+          items: const <BottomNavigationBarItem>[
+            BottomNavigationBarItem(
+              icon: Icon(Icons.home),
+              label: 'Home',
+              backgroundColor: Colors.blue,
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.explore),
+              label: 'Explore',
+              backgroundColor: Colors.blue,
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.confirmation_number),
+              label: 'Tickets',
+              backgroundColor: Colors.blue,
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.person),
+              label: 'Profile',
+              backgroundColor: Colors.blue,
+            ),
+          ],
+          currentIndex: _selectedIndex,
+          selectedItemColor: Colors.amber[800],
+          // backgroundColor: Color(
+          //     0x00921111), // Transparent background for BottomNavigationBar
+          onTap: _onItemTapped,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildHomeContent() {
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: TextField(
+            controller: _searchController,
+            decoration: const InputDecoration(
+              labelText: 'Search Events',
+              border: OutlineInputBorder(),
+              prefixIcon: Icon(Icons.search),
+            ),
+            onChanged: (value) {
+              setState(() {
+                // Handle search query change
+              });
+            },
+          ),
+        ),
+        if (_showRecommended)
+          Expanded(
+            child: FutureBuilder<List<Map<String, dynamic>>>(
+              future: _fetchRecommendedEvents(),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(child: CircularProgressIndicator());
+                }
+                if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                  return const Center(
+                      child: Text('No recommended events yet.'));
+                }
+
+                var events = snapshot.data!;
+
+                return ListView.builder(
+                  itemCount: events.length,
+                  itemBuilder: (context, index) {
+                    var event = events[index];
+                    return EventCard(event: event);
+                  },
+                );
               },
             ),
-          ),
-          if (_showRecommended)
-            Expanded(
-              child: FutureBuilder<List<Map<String, dynamic>>>(
-                future: _fetchRecommendedEvents(),
-                builder: (context, snapshot) {
-                  if (snapshot.connectionState == ConnectionState.waiting) {
-                    return const Center(child: CircularProgressIndicator());
-                  }
-                  if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                    return const Center(
-                        child: Text('No recommended events yet.'));
-                  }
-
-                  var events = snapshot.data!;
-
-                  return ListView.builder(
-                    itemCount: events.length,
-                    itemBuilder: (context, index) {
-                      var event = events[index];
-                      return EventCard(event: event);
-                    },
-                  );
-                },
-              ),
-            )
-          else
-            Expanded(
-              child: ListView(
-                children: [
-                  _buildCategorySection('Music'),
-                  _buildCategorySection('Cinema'),
-                  _buildCategorySection('Sports'),
-                  _buildCategorySection('Dinner'),
-                  _buildCategorySection('Beach Parties'),
-                ],
-              ),
+          )
+        else
+          Expanded(
+            child: ListView(
+              children: [
+                _buildCategorySection('Music'),
+                _buildCategorySection('Cinema'),
+                _buildCategorySection('Sports'),
+                _buildCategorySection('Dinner'),
+                _buildCategorySection('Beach Parties'),
+              ],
             ),
-        ],
-      ),
+          ),
+      ],
+    );
+  }
+
+  Widget _buildExploreContent() {
+    return Center(
+      child: Text('Explore Page Content'),
+    );
+  }
+
+  Widget _buildTicketsContent() {
+    return Center(
+      child: Text('Tickets Page Content'),
+    );
+  }
+
+  Widget _buildProfileContent() {
+    return Center(
+      child: Text('Profile Page Content'),
     );
   }
 
