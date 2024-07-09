@@ -12,6 +12,7 @@
   <title>hello_world</title>
   <link rel="manifest" href="manifest.json">
 
+  <!-- Firebase JS SDK -->
   <script src="https://www.gstatic.com/firebasejs/9.1.2/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.1.2/firebase-messaging.js"></script>
   <script>
@@ -27,6 +28,10 @@
     firebase.initializeApp(firebaseConfig);
     const messaging = firebase.messaging();
   </script>
+
+  <!-- Google Maps JavaScript API -->
+  <script src="https://maps.googleapis.com/maps/api/js?key=YOUR_GOOGLE_MAPS_API_KEY"></script>
+  
   <script src="flutter.js" defer></script>
 </head>
 <body>

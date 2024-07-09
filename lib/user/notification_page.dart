@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
-import 'package:flutter/material.dart';
-
 class NotificationPage extends StatelessWidget {
   final List<Map<String, dynamic>> notifications;
 
@@ -21,30 +19,19 @@ class NotificationPage extends StatelessWidget {
           final notification = notifications[index];
           final title = notification['title'] ?? 'No Title';
           final description = notification['description'] ?? 'No Description';
-          final price = notification['price']?.toString() ?? 'No Price';
+          final price = notification['price']?.toString() ??
+              'No Price'; // Ensure price is a String
           final location = notification['location'] ?? '';
           final image = notification['image'] ?? '';
           final date = notification['date'];
 
-          return GestureDetector(
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) =>
-                      EventDetailsPage(notification: notification),
-                ),
-              );
-            },
-            child: Card(
-              child: ListTile(
-                leading: image.isNotEmpty
-                    ? Image.network(image, width: 50, height: 50)
-                    : Icon(Icons.image, size: 50),
-                title: Text(title),
-                subtitle: Text('New Upcoming Event!'),
-              ),
-            ),
+          return ListTile(
+            leading: image.isNotEmpty
+                ? Image.network(image, width: 50, height: 50)
+                : Icon(Icons.image, size: 50),
+            title: Text(title),
+            subtitle: Text(
+                '$description\nPrice: $price\nLocation: $location\nDate: ${date.toString()}'),
           );
         },
       ),
