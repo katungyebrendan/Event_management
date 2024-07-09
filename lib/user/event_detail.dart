@@ -24,8 +24,10 @@ class EventDetailsPage extends StatefulWidget {
   }) : super(key: key);
 
   Future<Map<String, double>> getCoordinates(String locationName) async {
-    final apiKey = 'YOUR_API_KEY'; // Replace with your Google Maps Geocoding API key
-    final url = 'https://maps.googleapis.com/maps/api/geocode/json?address=$locationName&key=$apiKey';
+    final apiKey =
+        'AIzaSyD_vc1qYbzEXnqCWREUKWF-V5PRckknhjA'; // Replace with your Google Maps Geocoding API key
+    final url =
+        'https://maps.googleapis.com/maps/api/geocode/json?address=$locationName&key=$apiKey';
 
     final response = await http.get(Uri.parse(url));
     if (response.statusCode == 200) {
@@ -90,7 +92,8 @@ class _EventDetailsPageState extends State<EventDetailsPage> {
                   const SizedBox(height: 8),
                   GestureDetector(
                     onTap: () async {
-                      final coordinates = await widget.getCoordinates(widget.location);
+                      final coordinates =
+                          await widget.getCoordinates(widget.location);
                       Navigator.push(
                         context,
                         MaterialPageRoute(
@@ -241,7 +244,8 @@ class _PaymentFormState extends State<PaymentForm> {
       'shipping[address][country]': country,
     };
 
-    final response = await http.post(Uri.parse(url), headers: headers, body: body);
+    final response =
+        await http.post(Uri.parse(url), headers: headers, body: body);
 
     if (response.statusCode == 200) {
       return jsonDecode(response.body); // Use jsonDecode from dart:convert
