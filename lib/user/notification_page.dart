@@ -17,20 +17,13 @@ class NotificationPage extends StatelessWidget {
         itemBuilder: (context, index) {
           final notification = notifications[index];
           final title = notification['title'] ?? 'No Title';
-          final description = notification['description'] ?? 'No Description';
-          final price = notification['price']?.toString() ?? 'No Price'; // Ensure price is a String
-          final location = notification['location'] ?? '';
           final image = notification['image'] ?? '';
-          final date = notification['date'];
-
           return ListTile(
-            leading: image.isNotEmpty
-                ? Image.network(image, width: 50, height: 50)
-                : Icon(Icons.image, size: 50),
-            title: Text(title),
-            subtitle: Text(
-                '$description\nPrice: $price\nLocation: $location\nDate: ${date.toString()}'),
-          );
+              leading: image.isNotEmpty
+                  ? Image.network(image, width: 40, height: 40)
+                  : Icon(Icons.image, size: 40),
+              title: Text(title),
+              subtitle: Text("New event added (title)"));
         },
       ),
     );
