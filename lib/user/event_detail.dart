@@ -185,7 +185,7 @@ class _PaymentFormState extends State<PaymentForm> {
   ];
   String selectedCurrency = 'USD';
 
-  bool hasDonated = false;
+  bool hasBookedEvent = false;
 
   Future<void> initPaymentSheet() async {
     try {
@@ -440,7 +440,7 @@ class _PaymentFormState extends State<PaymentForm> {
                         );
 
                         setState(() {
-                          hasDonated = true;
+                          hasBookedEvent = true;
                         });
                         nameController.clear();
                         addressController.clear();
