@@ -139,7 +139,7 @@ class _EventDetailsPageState extends State<EventDetailsPage> {
                         ),
                       );
                     },
-                    child: const Text('Make Payment'),
+                    child: const Text('Book Event'),
                   ),
                 ],
               ),
@@ -176,6 +176,7 @@ class _PaymentFormState extends State<PaymentForm> {
 
   List<String> currencyList = <String>[
     'USD',
+    'UGX',
     'INR',
     'EUR',
     'JPY',
@@ -280,7 +281,7 @@ class _PaymentFormState extends State<PaymentForm> {
                       controller: amountController,
                       decoration: const InputDecoration(
                         labelText: "Amount",
-                        hintText: "Any amount you like",
+                        hintText: "Enter the amount to pay",
                       ),
                       validator: (value) {
                         if (value == null || value.isEmpty) {
@@ -313,7 +314,7 @@ class _PaymentFormState extends State<PaymentForm> {
                 controller: nameController,
                 decoration: const InputDecoration(
                   labelText: "Name",
-                  hintText: "Ex. John Doe",
+                  hintText: "Akoth Rose Mary",
                 ),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
@@ -327,7 +328,7 @@ class _PaymentFormState extends State<PaymentForm> {
                 controller: addressController,
                 decoration: const InputDecoration(
                   labelText: "Address Line",
-                  hintText: "Ex. 123 Main St",
+                  hintText: "123 Main St",
                 ),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
@@ -344,7 +345,7 @@ class _PaymentFormState extends State<PaymentForm> {
                     child: TextFormField(
                       decoration: const InputDecoration(
                         labelText: "City",
-                        hintText: "Ex. New Delhi",
+                        hintText: "Kampala",
                       ),
                       validator: (value) {
                         if (value == null || value.isEmpty) {
@@ -360,7 +361,7 @@ class _PaymentFormState extends State<PaymentForm> {
                     child: TextFormField(
                       decoration: const InputDecoration(
                         labelText: "State (Short code)",
-                        hintText: "Ex. DL for Delhi",
+                        hintText: "DL",
                       ),
                       validator: (value) {
                         if (value == null || value.isEmpty) {
@@ -380,8 +381,8 @@ class _PaymentFormState extends State<PaymentForm> {
                     child: TextFormField(
                       controller: countryController,
                       decoration: const InputDecoration(
-                        labelText: "Country (Short Code)",
-                        hintText: "Ex. IN for India",
+                        labelText: "Country",
+                        hintText: "Uganda",
                       ),
                       validator: (value) {
                         if (value == null || value.isEmpty) {
@@ -391,7 +392,7 @@ class _PaymentFormState extends State<PaymentForm> {
                       },
                     ),
                   ),
-                  const SizedBox(width: 10),
+                  //const SizedBox(width: 10),
                   Expanded(
                     flex: 5,
                     child: TextFormField(
