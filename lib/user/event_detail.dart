@@ -126,7 +126,7 @@ class _EventDetailsPageState extends State<EventDetailsPage> {
                     widget.description,
                     style: const TextStyle(fontSize: 16),
                   ),
-                  const SizedBox(height: 20),
+                  const SizedBox(height: 100),
                   ElevatedButton(
                     onPressed: () {
                       Navigator.push(
