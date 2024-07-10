@@ -42,7 +42,6 @@ class NotificationService {
               _addNotification({
                 'title': eventData['title'] ?? 'No Title',
                 'description': eventData['description'] ?? 'No Description',
-                'price': eventData['price'] ?? 'No Price',
                 'location': eventData['location'] ?? 'No Location',
                 'image': eventData['image'] ?? '',
                 'date': eventData['date'] != null
