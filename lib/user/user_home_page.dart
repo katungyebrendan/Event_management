@@ -6,6 +6,7 @@ import 'event_detail.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'notification_page.dart';
 import 'notification_service.dart'; // Import NotificationService
+import 'retrieve_events.dart'; // Import the RetrieveEventsPage
 
 class UserHomePage extends StatefulWidget {
   const UserHomePage({Key? key}) : super(key: key);
@@ -47,9 +48,20 @@ class _UserHomePageState extends State<UserHomePage> {
   }
 
   void _onItemTapped(int index) {
-    setState(() {
-      _selectedIndex = index;
-    });
+    if (index == 1) {
+      // Navigate to RetrieveEventsPage directly when Explore tab is selected
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => RetrieveEventsPage(
+              location: 'example_location'), // Pass the location or category
+        ),
+      );
+    } else {
+      setState(() {
+        _selectedIndex = index;
+      });
+    }
   }
 
   @override
@@ -103,11 +115,9 @@ class _UserHomePageState extends State<UserHomePage> {
       ),
       body: _selectedIndex == 0
           ? _buildHomeContent()
-          : _selectedIndex == 1
-              ? _buildExploreContent()
-              : _selectedIndex == 2
-                  ? _buildTicketsContent()
-                  : _buildProfileContent(),
+          : _selectedIndex == 2
+              ? _buildTicketsContent()
+              : _buildProfileContent(),
       bottomNavigationBar: Container(
         decoration: BoxDecoration(
           borderRadius: BorderRadius.only(
@@ -142,8 +152,6 @@ class _UserHomePageState extends State<UserHomePage> {
           ],
           currentIndex: _selectedIndex,
           selectedItemColor: Colors.amber[800],
-          // backgroundColor: Color(
-          //     0x00921111), // Transparent background for BottomNavigationBar
           onTap: _onItemTapped,
         ),
       ),
@@ -208,12 +216,6 @@ class _UserHomePageState extends State<UserHomePage> {
             ),
           ),
       ],
-    );
-  }
-
-  Widget _buildExploreContent() {
-    return Center(
-      child: Text('Explore Page Content'),
     );
   }
 
