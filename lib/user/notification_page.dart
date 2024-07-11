@@ -4,7 +4,8 @@ import 'package:intl/intl.dart';
 class NotificationPage extends StatelessWidget {
   final List<Map<String, dynamic>> notifications;
 
-  const NotificationPage({required this.notifications, Key? key}) : super(key: key);
+  const NotificationPage({required this.notifications, Key? key})
+      : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -12,19 +13,29 @@ class NotificationPage extends StatelessWidget {
       appBar: AppBar(
         title: Text('Notifications'),
       ),
-      body: ListView.builder(
-        itemCount: notifications.length,
-        itemBuilder: (context, index) {
-          final notification = notifications[index];
-          final title = notification['title'] ?? 'No Title';
-          final image = notification['image'] ?? '';
-          return ListTile(
-              leading: image.isNotEmpty
-                  ? Image.network(image, width: 40, height: 40)
-                  : Icon(Icons.image, size: 40),
-              title: Text(title),
-              subtitle: Text("New event added (title)"));
-        },
+      body: SingleChildScrollView(
+        child: Column(
+          children: List.generate(notifications.length, (index) {
+            final notification = notifications[index];
+            final title = notification['title'] ?? 'No Title';
+            final image = notification['image'] ?? '';
+
+            return Container(
+              margin: EdgeInsets.symmetric(vertical: 5, horizontal: 10),
+              decoration: BoxDecoration(
+                border: Border.all(color: Colors.grey),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: ListTile(
+                leading: image.isNotEmpty
+                    ? Image.network(image, width: 40, height: 40)
+                    : Icon(Icons.image, size: 40),
+                title: Text(title),
+                subtitle: Text("New event added: $title"),
+              ),
+            );
+          }),
+        ),
       ),
     );
   }
