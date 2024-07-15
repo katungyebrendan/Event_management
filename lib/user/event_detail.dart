@@ -1,9 +1,32 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'package:intl/intl.dart';
 import 'map_page.dart';
-import 'package:flutter_stripe/flutter_stripe.dart';
+
+void main() {
+  runApp(MyApp());
+}
+
+class MyApp extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      title: 'Mobile Money Deposit',
+      theme: ThemeData(
+        primarySwatch: Colors.blue,
+      ),
+      home: EventDetailsPage(
+        title: 'Event Title',
+        description: 'Event Description',
+        price: '1000',
+        imageUrl: 'https://via.placeholder.com/300',
+        location: 'Kampala',
+        date: DateTime.now(),
+      ),
+    );
+  }
+}
 
 class EventDetailsPage extends StatefulWidget {
   final String title;
@@ -126,14 +149,13 @@ class _EventDetailsPageState extends State<EventDetailsPage> {
                     widget.description,
                     style: const TextStyle(fontSize: 16),
                   ),
-                  const SizedBox(height: 100),
+                  const SizedBox(height: 16),
                   ElevatedButton(
                     onPressed: () {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
                           builder: (context) => PaymentForm(
-                            title: widget.title,
                             price: widget.price,
                           ),
                         ),
@@ -152,320 +174,183 @@ class _EventDetailsPageState extends State<EventDetailsPage> {
 }
 
 class PaymentForm extends StatefulWidget {
-  final String title;
   final String price;
 
-  const PaymentForm({
-    Key? key,
-    required this.title,
-    required this.price,
-  }) : super(key: key);
+  const PaymentForm({Key? key, required this.price}) : super(key: key);
 
   @override
-  State<PaymentForm> createState() => _PaymentFormState();
+  _PaymentFormState createState() => _PaymentFormState();
 }
 
 class _PaymentFormState extends State<PaymentForm> {
   final _formKey = GlobalKey<FormState>();
 
-  TextEditingController amountController = TextEditingController();
-  TextEditingController nameController = TextEditingController();
-  TextEditingController addressController = TextEditingController();
-  TextEditingController countryController = TextEditingController();
-  TextEditingController pincodeController = TextEditingController();
+  String _username = '3f576bd547c22941';
+  String _password = 'c2838880b1b85a53';
+  String _amount = '';
+  String _currency = 'UGX';
+  String _phone = '256786533813';
+  String _reference = '';
+  String _reason = '';
 
-  List<String> currencyList = <String>[
-    'USD',
-    'UGX',
-    'INR',
-    'EUR',
-    'JPY',
-    'GBP',
-    'AED'
-  ];
-  String selectedCurrency = 'USD';
-
-  bool hasBookedEvent = false;
-
-  Future<void> initPaymentSheet() async {
-    try {
-      // 1. create payment intent on the client side by calling stripe api
-      final data = await createPaymentIntent(
-        amount: (int.parse(amountController.text) * 100).toString(),
-        currency: selectedCurrency,
-        name: nameController.text,
-        address: addressController.text,
-        pin: pincodeController.text,
-        country: countryController.text,
-      );
-
-      // 2. initialize the payment sheet
-      await Stripe.instance.initPaymentSheet(
-        paymentSheetParameters: SetupPaymentSheetParameters(
-          // Set to true for custom flow
-          customFlow: false,
-          // Main params
-          merchantDisplayName: 'Test Merchant',
-          paymentIntentClientSecret: data['client_secret'],
-          // Customer keys
-          customerEphemeralKeySecret: data['ephemeralKey'],
-          customerId: data['id'],
-          style: ThemeMode.dark,
-        ),
-      );
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error: $e')),
-      );
-      rethrow;
-    }
-  }
-
-  Future<Map<String, dynamic>> createPaymentIntent({
-    required String amount,
-    required String currency,
-    required String name,
-    required String address,
-    required String pin,
-    required String country,
-  }) async {
-    final url = 'https://api.stripe.com/v1/payment_intents';
-    final headers = {
-      'Authorization': 'Bearer YOUR_STRIPE_SECRET_KEY',
-      'Content-Type': 'application/x-www-form-urlencoded',
-    };
-    final body = {
-      'amount': amount,
-      'currency': currency,
-      'payment_method_types[]': 'card',
-      'setup_future_usage': 'off_session',
-      'shipping[name]': name,
-      'shipping[address][line1]': address,
-      'shipping[address][postal_code]': pin,
-      'shipping[address][country]': country,
-    };
-
-    final response =
-        await http.post(Uri.parse(url), headers: headers, body: body);
-
-    if (response.statusCode == 200) {
-      return jsonDecode(response.body); // Use jsonDecode from dart:convert
-    } else {
-      throw Exception('Failed to create payment intent');
-    }
+  @override
+  void initState() {
+    super.initState();
+    _amount = widget.price;
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Payment Form - ${widget.title}'),
+        title: Text('Payment Form'),
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(8.0),
-        child: Form(
-          key: _formKey,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                "My Payment",
-                style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 6),
-              Row(
-                children: [
-                  Expanded(
-                    flex: 5,
-                    child: TextFormField(
-                      controller: amountController,
-                      decoration: const InputDecoration(
-                        labelText: "Amount",
-                        hintText: "Enter the amount to pay",
-                      ),
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Please enter an amount';
-                        }
-                        return null;
-                      },
-                    ),
-                  ),
-                  const SizedBox(width: 10),
-                  DropdownButton<String>(
-                    value: selectedCurrency,
-                    onChanged: (String? value) {
-                      setState(() {
-                        selectedCurrency = value!;
-                      });
-                    },
-                    items: currencyList
-                        .map<DropdownMenuItem<String>>((String value) {
-                      return DropdownMenuItem<String>(
-                        value: value,
-                        child: Text(value),
-                      );
-                    }).toList(),
-                  )
-                ],
-              ),
-              const SizedBox(height: 10),
-              TextFormField(
-                controller: nameController,
-                decoration: const InputDecoration(
-                  labelText: "Name",
-                  hintText: "Akoth Rose Mary",
+      body: SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.all(20.0),
+          child: Form(
+            key: _formKey,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                TextFormField(
+                  decoration: InputDecoration(labelText: 'Event Name'),
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Please enter the event name';
+                    }
+                    return null;
+                  },
+                  onSaved: (value) => _reason = value!,
                 ),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Please enter your name';
-                  }
-                  return null;
-                },
-              ),
-              const SizedBox(height: 10),
-              TextFormField(
-                controller: addressController,
-                decoration: const InputDecoration(
-                  labelText: "Address Line",
-                  hintText: "123 Main St",
+                TextFormField(
+                  decoration: InputDecoration(labelText: 'Event Date'),
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Please enter the event date';
+                    }
+                    return null;
+                  },
+                  onSaved: (value) => _reference = value!,
                 ),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Please enter your address';
-                  }
-                  return null;
-                },
-              ),
-              const SizedBox(height: 10),
-              Row(
-                children: [
-                  Expanded(
-                    flex: 5,
-                    child: TextFormField(
-                      decoration: const InputDecoration(
-                        labelText: "City",
-                        hintText: "Kampala",
-                      ),
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Please enter your city';
-                        }
-                        return null;
-                      },
-                    ),
-                  ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    flex: 5,
-                    child: TextFormField(
-                      decoration: const InputDecoration(
-                        labelText: "State (Short code)",
-                        hintText: "DL",
-                      ),
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Please enter your state';
-                        }
-                        return null;
-                      },
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 10),
-              Row(
-                children: [
-                  Expanded(
-                    flex: 5,
-                    child: TextFormField(
-                      controller: countryController,
-                      decoration: const InputDecoration(
-                        labelText: "Country",
-                        hintText: "Uganda",
-                      ),
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Please enter your country';
-                        }
-                        return null;
-                      },
-                    ),
-                  ),
-                  //const SizedBox(width: 10),
-                  Expanded(
-                    flex: 5,
-                    child: TextFormField(
-                      controller: pincodeController,
-                      decoration: const InputDecoration(
-                        labelText: "Pincode",
-                        hintText: "Ex. 123456",
-                      ),
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Please enter your pincode';
-                        }
-                        return null;
-                      },
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 12),
-              SizedBox(
-                height: 50,
-                width: double.infinity,
-                child: ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.blueAccent.shade400),
-                  child: const Text(
-                    "Proceed to Pay",
-                    style: TextStyle(color: Colors.white, fontSize: 16),
-                  ),
-                  onPressed: () async {
+                SizedBox(height: 20),
+                Text('Payment Details',
+                    style:
+                        TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                TextFormField(
+                  decoration: InputDecoration(labelText: 'Username'),
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Please enter your username';
+                    }
+                    return null;
+                  },
+                  onSaved: (value) => _username = value!,
+                ),
+                TextFormField(
+                  decoration: InputDecoration(labelText: 'Password'),
+                  obscureText: true,
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Please enter your password';
+                    }
+                    return null;
+                  },
+                  onSaved: (value) => _password = value!,
+                ),
+                TextFormField(
+                  decoration: InputDecoration(labelText: 'Amount'),
+                  initialValue: _amount,
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Please enter the amount';
+                    }
+                    return null;
+                  },
+                  onSaved: (value) => _amount = value!,
+                ),
+                DropdownButtonFormField<String>(
+                  decoration: InputDecoration(labelText: 'Currency'),
+                  value: _currency,
+                  onChanged: (String? newValue) {
+                    setState(() {
+                      _currency = newValue!;
+                    });
+                  },
+                  items: <String>['UGX', 'USD', 'EUR']
+                      .map<DropdownMenuItem<String>>((String value) {
+                    return DropdownMenuItem<String>(
+                      value: value,
+                      child: Text(value),
+                    );
+                  }).toList(),
+                ),
+                TextFormField(
+                  decoration:
+                      InputDecoration(labelText: 'Mobile Money Phone Number'),
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Please enter your mobile money phone number';
+                    }
+                    return null;
+                  },
+                  onSaved: (value) => _phone = value!,
+                ),
+                SizedBox(height: 20),
+                ElevatedButton(
+                  onPressed: () {
                     if (_formKey.currentState!.validate()) {
-                      await initPaymentSheet();
-
-                      try {
-                        await Stripe.instance.presentPaymentSheet();
-
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: const Text(
-                              "Payment Done",
-                              style: TextStyle(color: Colors.white),
-                            ),
-                            backgroundColor: Colors.green,
-                          ),
-                        );
-
-                        setState(() {
-                          hasBookedEvent = true;
-                        });
-                        nameController.clear();
-                        addressController.clear();
-                        countryController.clear();
-                        pincodeController.clear();
-                      } catch (e) {
-                        print("payment sheet failed");
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: const Text(
-                              "Payment Failed",
-                              style: TextStyle(color: Colors.white),
-                            ),
-                            backgroundColor: Colors.redAccent,
-                          ),
-                        );
-                      }
+                      _formKey.currentState!.save();
+                      makePayment();
                     }
                   },
+                  child: Text('Make Payment'),
                 ),
-              )
-            ],
+              ],
+            ),
           ),
         ),
       ),
     );
+  }
+
+  Future<void> makePayment() async {
+    final url =
+        'https://www.easypay.co.ug/api/payments'; // Replace with actual EasyPay API endpoint
+
+    final payload = {
+      'username': '3f576bd547c22941',
+      'password': 'c2838880b1b85a53',
+      'action': 'mmdeposit',
+      'amount': _amount,
+      'currency': _currency,
+      'phone': '256786533813',
+      'reference': _reference,
+      'reason': _reason,
+    };
+
+    try {
+      final response = await http.post(
+        Uri.parse(url),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode(payload),
+      );
+
+      if (response.statusCode == 200) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Payment initiated successfully!')),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+              content:
+                  Text('Error: ${response.statusCode} - ${response.body}')),
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error: $e')),
+      );
+    }
   }
 }
