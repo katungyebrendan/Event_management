@@ -187,7 +187,7 @@ class _PaymentFormState extends State<PaymentForm> {
 
   String _username = '3f576bd547c22941';
   String _password = 'c2838880b1b85a53';
-  String _amount = '';
+  String _amount = '500';
   String _currency = 'UGX';
   String _phone = '256786533813';
   String _reference = '';
@@ -213,7 +213,7 @@ class _PaymentFormState extends State<PaymentForm> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                TextFormField(
+                /*TextFormField(
                   decoration: InputDecoration(labelText: 'Event Name'),
                   validator: (value) {
                     if (value == null || value.isEmpty) {
@@ -232,7 +232,7 @@ class _PaymentFormState extends State<PaymentForm> {
                     return null;
                   },
                   onSaved: (value) => _reference = value!,
-                ),
+                ),*/
                 SizedBox(height: 20),
                 Text('Payment Details',
                     style:
@@ -324,11 +324,40 @@ class _PaymentFormState extends State<PaymentForm> {
       'action': 'mmdeposit',
       'amount': _amount,
       'currency': _currency,
-      'phone': '256786533813',
+      'phone': '0786533813',
       'reference': _reference,
       'reason': _reason,
     };
 
+    Map<String, String> headers = {
+      'Content-Type': 'application/json',
+      // Add any other headers that are required
+    };
+
+    String body = jsonEncode({
+      'key1': 'amount',
+      'key2': 'phone number',
+      // Add any other data that you want to send in the request body
+    });
+
+    final response =
+        await http.post(Uri.parse(url), headers: headers, body: body);
+
+    if (response.statusCode == 200) {
+      // Handle success response
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Payment successful')),
+      );
+    } else {
+      // Handle error response
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Payment failed')),
+      );
+    }
+  }
+}
+
+/*
     try {
       final response = await http.post(
         Uri.parse(url),
@@ -354,3 +383,5 @@ class _PaymentFormState extends State<PaymentForm> {
     }
   }
 }
+
+*/
