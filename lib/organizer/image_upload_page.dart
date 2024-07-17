@@ -7,6 +7,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:uuid/uuid.dart'; // For generating unique IDs
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 
 class UploadImagePage extends StatefulWidget {
   final String collection; // Add this parameter
@@ -43,6 +45,26 @@ class _UploadImagePageState extends State<UploadImagePage> {
         });
       }
     }
+  }
+
+  Future<Map<String, double>> _getCoordinates(String locationName) async {
+    final apiKey =
+        'AIzaSyD_vc1qYbzEXnqCWREUKWF-V5PRckknhjA'; // Replace with your Google Maps Geocoding API key
+    final url =
+        'https://maps.googleapis.com/maps/api/geocode/json?address=$locationName&key=$apiKey';
+
+    final response = await http.get(Uri.parse(url));
+    if (response.statusCode == 200) {
+      final data = json.decode(response.body);
+      if (data['results'].isNotEmpty) {
+        final location = data['results'][0]['geometry']['location'];
+        return {
+          'latitude': location['lat'],
+          'longitude': location['lng'],
+        };
+      }
+    }
+    return {'latitude': 0.0, 'longitude': 0.0};
   }
 
   Future<void> _uploadData() async {
@@ -92,6 +114,11 @@ class _UploadImagePageState extends State<UploadImagePage> {
           throw Exception("No authenticated user");
         }
 
+        // Get the coordinates of the event location
+        final coordinates = await _getCoordinates(_location);
+        final latitude = coordinates['latitude'];
+        final longitude = coordinates['longitude'];
+
         // Save data to Firestore with the organizerId in the specified collection
         await FirebaseFirestore.instance.collection(widget.collection).add({
           'title': _title,
@@ -99,6 +126,8 @@ class _UploadImagePageState extends State<UploadImagePage> {
           'date': _date,
           'price': _price,
           'location': _location, // Add location field
+          'latitude': latitude,
+          'longitude': longitude,
           'imageUrl': imageUrl,
           'organizerId': user.uid, // Add the organizer ID
         });
