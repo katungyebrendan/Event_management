@@ -7,6 +7,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'notification_page.dart';
 import 'notification_service.dart'; // Import NotificationService
 import 'retrieve_events.dart'; // Import the RetrieveEventsPage
+import 'tickets_page.dart';
 
 class UserHomePage extends StatefulWidget {
   const UserHomePage({Key? key}) : super(key: key);
@@ -116,7 +117,7 @@ class _UserHomePageState extends State<UserHomePage> {
       body: _selectedIndex == 0
           ? _buildHomeContent()
           : _selectedIndex == 2
-              ? _buildTicketsContent()
+              ? TicketsPage()
               : _buildProfileContent(),
       bottomNavigationBar: Container(
         decoration: BoxDecoration(
