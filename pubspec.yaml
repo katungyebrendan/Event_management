@@ -22,7 +22,8 @@ dependencies:
   google_maps_flutter: ^2.5.3
   http: ^1.2.1
   flutter_stripe: ^4.0.0
-  geolocator: ^9.0.0 
+  geolocator: ^9.0.0
+  permission_handler: ^10.2.0 
  
 
 
