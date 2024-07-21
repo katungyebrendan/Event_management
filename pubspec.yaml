@@ -24,6 +24,8 @@ dependencies:
   flutter_stripe: ^4.0.0
   geolocator: ^9.0.0
   permission_handler: ^10.2.0 
+  ticket_widget: ^0.0.1
+  barcode_widget: ^2.0.4
  
 
 
