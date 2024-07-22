@@ -8,6 +8,7 @@ import 'notification_page.dart';
 import 'notification_service.dart'; // Import NotificationService
 import 'retrieve_events.dart'; // Import the RetrieveEventsPage
 import 'tickets_page.dart';
+import 'profile_page.dart'; // Import ProfilePage
 
 class UserHomePage extends StatefulWidget {
   const UserHomePage({Key? key}) : super(key: key);
@@ -21,6 +22,8 @@ class _UserHomePageState extends State<UserHomePage> {
   bool _showRecommended = false; // Toggle for showing recommended events
   late NotificationService _notificationService;
   int _selectedIndex = 0; // Track the selected tab
+  List<Map<String, dynamic>> _searchResults = [];
+  bool _isSearching = false;
 
   @override
   void initState() {
@@ -46,6 +49,29 @@ class _UserHomePageState extends State<UserHomePage> {
       return data;
     }).toList();
     return events;
+  }
+
+  Future<void> _performSearch(String query) async {
+    setState(() {
+      _isSearching = true;
+    });
+
+    final querySnapshot = await FirebaseFirestore.instance
+        .collectionGroup('events')
+        .where('title', isGreaterThanOrEqualTo: query)
+        .where('title', isLessThanOrEqualTo: query + '\uf8ff')
+        .get();
+
+    final searchResults = querySnapshot.docs.map((doc) {
+      final data = doc.data() as Map<String, dynamic>;
+      data['id'] = doc.id;
+      return data;
+    }).toList();
+
+    setState(() {
+      _searchResults = searchResults;
+      _isSearching = false;
+    });
   }
 
   void _onItemTapped(int index) {
@@ -114,46 +140,55 @@ class _UserHomePageState extends State<UserHomePage> {
           ),
         ],
       ),
-      body: _selectedIndex == 0
-          ? _buildHomeContent()
-          : _selectedIndex == 2
-              ? TicketsPage()
-              : _buildProfileContent(),
-      bottomNavigationBar: Container(
+      body: Container(
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.only(
-            topLeft: Radius.circular(10.0),
-            topRight: Radius.circular(10.0),
-            bottomLeft: Radius.circular(10.0),
-            bottomRight: Radius.circular(10.0),
+          gradient: LinearGradient(
+            colors: [Color(0xfffffef2), Color(0xfffffef2)],
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
           ),
         ),
-        child: BottomNavigationBar(
-          items: const <BottomNavigationBarItem>[
-            BottomNavigationBarItem(
-              icon: Icon(Icons.home),
-              label: 'Home',
-              backgroundColor: Colors.blue,
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.explore),
-              label: 'Explore',
-              backgroundColor: Colors.blue,
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.confirmation_number),
-              label: 'Tickets',
-              backgroundColor: Colors.blue,
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.person),
-              label: 'Profile',
-              backgroundColor: Colors.blue,
-            ),
-          ],
-          currentIndex: _selectedIndex,
-          selectedItemColor: Colors.amber[800],
-          onTap: _onItemTapped,
+        child: _selectedIndex == 0
+            ? _buildHomeContent()
+            : _selectedIndex == 2
+                ? TicketsPage()
+                : ProfilePage(), // Show ProfilePage when Profile tab is selected
+      ),
+      bottomNavigationBar: Container(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(40.0),
+        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(40.0),
+          child: BottomNavigationBar(
+            items: const <BottomNavigationBarItem>[
+              BottomNavigationBarItem(
+                icon: Icon(Icons.home, color: Color(0xffffffff)),
+                label: 'Home',
+                backgroundColor: Color(0xff152377),
+              ),
+              BottomNavigationBarItem(
+                icon: Icon(Icons.explore, color: Color(0xffffffff)),
+                label: 'Explore',
+                backgroundColor: Color(0xff152377),
+              ),
+              BottomNavigationBarItem(
+                icon: Icon(Icons.confirmation_number, color: Color(0xffffffff)),
+                label: 'Tickets',
+                backgroundColor: Color(0xff152377),
+              ),
+              BottomNavigationBarItem(
+                icon: Icon(Icons.person, color: Color(0xffffffff)),
+                label: 'Profile',
+                backgroundColor: Color(0xff152377),
+              ),
+            ],
+            currentIndex: _selectedIndex,
+            selectedItemColor: Color(0xffffffff),
+            // Change selected item color
+            unselectedItemColor: Colors.grey,
+            onTap: _onItemTapped,
+          ),
         ),
       ),
     );
@@ -167,19 +202,33 @@ class _UserHomePageState extends State<UserHomePage> {
           padding: const EdgeInsets.all(8.0),
           child: TextField(
             controller: _searchController,
-            decoration: const InputDecoration(
+            decoration: InputDecoration(
+              filled: true, // fill the background with a color
+              fillColor: Colors.white,
               labelText: 'Search Events',
-              border: OutlineInputBorder(),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(50.0),
+              ),
               prefixIcon: Icon(Icons.search),
             ),
             onChanged: (value) {
-              setState(() {
-                // Handle search query change
-              });
+              _performSearch(value);
             },
           ),
         ),
-        if (_showRecommended)
+        if (_isSearching)
+          const Center(child: CircularProgressIndicator())
+        else if (_searchResults.isNotEmpty)
+          Expanded(
+            child: ListView.builder(
+              itemCount: _searchResults.length,
+              itemBuilder: (context, index) {
+                var event = _searchResults[index];
+                return EventCard(event: event);
+              },
+            ),
+          )
+        else if (_showRecommended)
           Expanded(
             child: FutureBuilder<List<Map<String, dynamic>>>(
               future: _fetchRecommendedEvents(),
@@ -227,9 +276,7 @@ class _UserHomePageState extends State<UserHomePage> {
   }
 
   Widget _buildProfileContent() {
-    return Center(
-      child: Text('Profile Page Content'),
-    );
+    return ProfilePage(); // Return ProfilePage widget
   }
 
   Widget _buildCategorySection(String category) {
@@ -259,14 +306,14 @@ class _UserHomePageState extends State<UserHomePage> {
               ),
             ),
             SizedBox(
-              height: 290, // Reduced height to avoid overflow
+              height: 380, // Increased height for larger cards
               child: ListView.builder(
                 scrollDirection: Axis.horizontal,
                 itemCount: events.length,
                 itemBuilder: (context, index) {
                   var event = events[index];
                   return SizedBox(
-                    width: 200,
+                    width: 300, // Increased width for larger cards
                     child: EventCard(event: event),
                   );
                 },
@@ -295,20 +342,28 @@ class EventCard extends StatelessWidget {
     }
 
     return Card(
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16), // rounded edges
+      ),
+      color: Color(0xff34424e),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           event['imageUrl'] != null && event['imageUrl'].isNotEmpty
-              ? Image.network(
-                  event['imageUrl'],
-                  width: double.infinity,
-                  height: 150, // Adjusted height to avoid overflow
-                  fit: BoxFit.cover,
+              ? ClipRRect(
+                  borderRadius: BorderRadius.vertical(
+                      top: Radius.circular(16)), // Rounded edges at the top
+                  child: Image.network(
+                    event['imageUrl'],
+                    width: double.infinity,
+                    height: 240, // Increased height for larger images
+                    fit: BoxFit.cover,
+                  ),
                 )
               : Container(
                   color: Colors.grey,
                   width: double.infinity,
-                  height: 150, // Adjusted height to avoid overflow
+                  height: 240, // Increased height for larger placeholder
                   child: const Icon(Icons.image, size: 100),
                 ),
           Padding(
@@ -316,8 +371,9 @@ class EventCard extends StatelessWidget {
             child: Text(
               event['title'] ?? 'No Title',
               style: const TextStyle(
-                fontSize: 16, // Adjusted font size to avoid overflow
+                fontSize: 20, // Increased font size
                 fontWeight: FontWeight.bold,
+                color: Color(0xffffb322),
               ),
             ),
           ),
@@ -327,7 +383,7 @@ class EventCard extends StatelessWidget {
               eventDate != null
                   ? DateFormat('yyyy-MM-dd').format(eventDate)
                   : 'No Date',
-              style: TextStyle(color: Colors.grey[600]),
+              style: TextStyle(color: Color(0xffffb322)),
             ),
           ),
           Padding(
@@ -348,7 +404,11 @@ class EventCard extends StatelessWidget {
                   ),
                 );
               },
-              child: const Text('Details'),
+              child: const Text(
+                'Details',
+                style: TextStyle(
+                    fontWeight: FontWeight.bold, color: Color(0xff181716)),
+              ),
             ),
           ),
         ],
