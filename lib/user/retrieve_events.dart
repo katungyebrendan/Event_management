@@ -19,7 +19,7 @@ class _RetrieveEventsPageState extends State<RetrieveEventsPage> {
     'cinema',
     'sports',
     'dinner',
-    'beach parties'
+    'beach'
   ];
 
   Future<Position> _getUserLocation() async {

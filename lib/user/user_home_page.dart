@@ -261,7 +261,7 @@ class _UserHomePageState extends State<UserHomePage> {
                 _buildCategorySection('Cinema'),
                 _buildCategorySection('Sports'),
                 _buildCategorySection('Dinner'),
-                _buildCategorySection('Beach Parties'),
+                _buildCategorySection('Beach'),
               ],
             ),
           ),

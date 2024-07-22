@@ -14,7 +14,7 @@ class _OrganizerHomePageState extends State<OrganizerHomePage> {
 
   final List<String> _collections = [
     'dinner',
-    'beach parties',
+    'beach',
     'music',
     'cinema',
     'sports'
