@@ -27,6 +27,7 @@ dependencies:
   ticket_widget: ^0.0.1
   barcode_widget: ^2.0.4
   flutter_launcher_icons: ^0.13.1
+  shared_preferences: ^2.0.6
  
 
 
