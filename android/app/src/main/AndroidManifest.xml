@@ -6,13 +6,13 @@
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
     
     <application
-        android:label="helloworld"
+        android:label="FunExpo"
         android:name="${applicationName}"
         android:icon="@mipmap/launcher_icon">
         
         <meta-data
             android:name="com.google.android.geo.API_KEY"
-            android:value="AIzaSyD7eoLtt7nA322I-U5t1Pu9wGpRqtffwxc"/>
+            android:value="AIzaSyAUrMZxg3wXkPFh_tzQd605IVMoyp60hhc"/>
         
         <activity
             android:name=".MainActivity"
