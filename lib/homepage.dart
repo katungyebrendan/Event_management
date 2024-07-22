@@ -6,7 +6,7 @@ class HomePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Event Booking App')),
+      // appBar: AppBar(title: Text('Event Booking App')),
       body: Container(
         decoration: BoxDecoration(
           image: DecorationImage(
@@ -26,7 +26,7 @@ class HomePage extends StatelessWidget {
                   borderRadius: BorderRadius.circular(8.0),
                 ),
                 child: Text(
-                  'Welcome to Event Booking App',
+                  'Welcome to FUN EXPO',
                   style: TextStyle(
                     fontSize: 24,
                     color: Colors.white,
