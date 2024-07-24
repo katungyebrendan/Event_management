@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:helloworld/user/user_home_page.dart';
-import 'package:helloworld/organizer/OrganizerHomePage.dart';
+import 'package:helloworld/user/user_home_page.dart'; // Corrected import path
+import 'package:helloworld/organizer/OrganizerHomePage.dart'; // Corrected import path
 
 class LoginPage extends StatefulWidget {
   @override
