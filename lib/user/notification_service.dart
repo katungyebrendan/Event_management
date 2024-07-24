@@ -12,7 +12,7 @@ class NotificationService {
     'dinner',
     'sports',
     'cinema',
-    'beach_parties',
+    'beach',
   ];
 
   NotificationService(this.context) {
