@@ -28,13 +28,13 @@ dependencies:
   barcode_widget: ^2.0.4
   flutter_launcher_icons: ^0.13.1
   shared_preferences: ^2.0.6
+  flutterwave_standard: ^1.0.5 
  
 
 
 
 
 dev_dependencies:
-  flutter_launcher_icons: "^0.13.1"
 
 flutter_launcher_icons:
   android: "launcher_icon"
