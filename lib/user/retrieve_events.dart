@@ -101,7 +101,7 @@ class _RetrieveEventsPageState extends State<RetrieveEventsPage> {
                       SizedBox(height: 8.0),
                       FutureBuilder<List<DocumentSnapshot>>(
                         future: _fetchEvents(userPosition, category,
-                            10.0), // Radius in kilometers
+                            30.0), // Radius in kilometers
                         builder: (context, snapshot) {
                           if (snapshot.connectionState ==
                               ConnectionState.waiting) {
