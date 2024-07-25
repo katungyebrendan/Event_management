@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart' as auth;
 import 'package:intl/intl.dart';
-import '../auth/login_page.dart';
 import 'event_detail.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'notification_page.dart';
@@ -19,7 +18,6 @@ class UserHomePage extends StatefulWidget {
 
 class _UserHomePageState extends State<UserHomePage> {
   final TextEditingController _searchController = TextEditingController();
-  bool _showRecommended = false; // Toggle for showing recommended events
   late NotificationService _notificationService;
   int _selectedIndex = 0; // Track the selected tab
   List<Map<String, dynamic>> _searchResults = [];
@@ -30,14 +28,6 @@ class _UserHomePageState extends State<UserHomePage> {
     super.initState();
     _notificationService =
         NotificationService(context); // Initialize NotificationService
-  }
-
-  Future<List<Map<String, dynamic>>> _fetchRecommendedEvents() async {
-    final user = auth.FirebaseAuth.instance.currentUser;
-    if (user != null) {
-      // Implement your logic to fetch recommended events for the user
-    }
-    return [];
   }
 
   Future<List<Map<String, dynamic>>> _fetchEvents(String category) async {
@@ -211,31 +201,6 @@ class _UserHomePageState extends State<UserHomePage> {
               },
             ),
           )
-        else if (_showRecommended)
-          Expanded(
-            child: FutureBuilder<List<Map<String, dynamic>>>(
-              future: _fetchRecommendedEvents(),
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(child: CircularProgressIndicator());
-                }
-                if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                  return const Center(
-                      child: Text('No recommended events yet.'));
-                }
-
-                var events = snapshot.data!;
-
-                return ListView.builder(
-                  itemCount: events.length,
-                  itemBuilder: (context, index) {
-                    var event = events[index];
-                    return EventCard(event: event);
-                  },
-                );
-              },
-            ),
-          )
         else
           Expanded(
             child: ListView(
@@ -286,7 +251,7 @@ class _UserHomePageState extends State<UserHomePage> {
                 itemBuilder: (context, index) {
                   var event = events[index];
                   return SizedBox(
-                    width: 300, // Increased width for larger cards
+                    width: 250, // Increased width for larger cards
                     child: EventCard(event: event),
                   );
                 },
