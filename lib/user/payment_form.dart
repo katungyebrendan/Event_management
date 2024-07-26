@@ -1,5 +1,30 @@
 import 'package:flutter/material.dart';
 import 'package:flutterwave_standard/flutterwave.dart';
+import 'tickets_page.dart';
+import 'package:ticket_widget/ticket_widget.dart';
+
+void main() {
+  runApp(const MyApp());
+}
+
+class MyApp extends StatelessWidget {
+  const MyApp({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      debugShowCheckedModeBanner: false,
+      title: 'Flutterwave Payment',
+      theme: ThemeData(
+        primarySwatch: Colors.blue,
+      ),
+      home: PaymentForm(),
+      routes: {
+        '/tickets': (context) => TicketsPage(),
+      },
+    );
+  }
+}
 
 class PaymentForm extends StatefulWidget {
   @override
@@ -152,5 +177,46 @@ class _PaymentFormState extends State<PaymentForm> {
     _phoneController.dispose();
     _emailController.dispose();
     super.dispose();
+  }
+}
+
+class TicketsPage extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        title: Text('Your Ticket'),
+        // centerTitle: true,
+        // flexibleSpace: Container(
+        //   decoration: BoxDecoration(
+        //       image: DecorationImage(
+        //           image: AssetImage('assets/images/background2.jpeg'),
+        //           fit: BoxFit.fill)),
+        // ),
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back_rounded),
+          onPressed: () {
+            Navigator.pop(context);
+          },
+        ),
+      ),
+      backgroundColor: Colors.blueGrey,
+      body: SingleChildScrollView(
+        child: Center(
+          child: Padding(
+            padding: const EdgeInsets.all(20.0),
+            child: TicketWidget(
+              width: 300,
+              height: 600,
+              isCornerRounded: true,
+              padding: EdgeInsets.all(20),
+              child: TicketData(),
+            ),
+          ),
+        ),
+      ),
+    );
   }
 }

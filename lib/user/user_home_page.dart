@@ -125,7 +125,12 @@ class _UserHomePageState extends State<UserHomePage> {
         child: _selectedIndex == 0
             ? _buildHomeContent()
             : _selectedIndex == 2
-                ? TicketsPage()
+                ? TicketsPage(
+                    title: 'title',
+                    price: 'price',
+                    location: 'location',
+                    date: DateTime.parse('2022-01-08'),
+                  )
                 : ProfilePage(), // Show ProfilePage when Profile tab is selected
       ),
       bottomNavigationBar: Container(
