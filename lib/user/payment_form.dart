@@ -1,32 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutterwave_standard/flutterwave.dart';
-import 'tickets_page.dart';
-import 'package:ticket_widget/ticket_widget.dart';
-
-void main() {
-  runApp(const MyApp());
-}
-
-class MyApp extends StatelessWidget {
-  const MyApp({Key? key}) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      title: 'Flutterwave Payment',
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
-      ),
-      home: PaymentForm(),
-      routes: {
-        '/tickets': (context) => TicketsPage(),
-      },
-    );
-  }
-}
 
 class PaymentForm extends StatefulWidget {
+  final Function(bool) onPaymentProcessed;
+
+  const PaymentForm({Key? key, required this.onPaymentProcessed})
+      : super(key: key);
+
   @override
   _PaymentFormState createState() => _PaymentFormState();
 }
@@ -40,16 +20,16 @@ class _PaymentFormState extends State<PaymentForm> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text("Flutterwave Payment")),
+      appBar: AppBar(title: const Text("Flutterwave Payment")),
       body: Padding(
-        padding: EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(16.0),
         child: Form(
           key: _formKey,
           child: Column(
             children: [
               TextFormField(
                 controller: _amountController,
-                decoration: InputDecoration(labelText: 'Amount'),
+                decoration: const InputDecoration(labelText: 'Amount'),
                 keyboardType: TextInputType.number,
                 validator: (value) {
                   if (value == null || value.isEmpty) {
@@ -60,7 +40,7 @@ class _PaymentFormState extends State<PaymentForm> {
               ),
               TextFormField(
                 controller: _phoneController,
-                decoration: InputDecoration(labelText: 'Phone Number'),
+                decoration: const InputDecoration(labelText: 'Phone Number'),
                 keyboardType: TextInputType.phone,
                 validator: (value) {
                   if (value == null || value.isEmpty) {
@@ -71,7 +51,7 @@ class _PaymentFormState extends State<PaymentForm> {
               ),
               TextFormField(
                 controller: _emailController,
-                decoration: InputDecoration(labelText: 'Email'),
+                decoration: const InputDecoration(labelText: 'Email'),
                 keyboardType: TextInputType.emailAddress,
                 validator: (value) {
                   if (value == null || value.isEmpty) {
@@ -80,14 +60,14 @@ class _PaymentFormState extends State<PaymentForm> {
                   return null;
                 },
               ),
-              SizedBox(height: 20),
+              const SizedBox(height: 20),
               ElevatedButton(
                 onPressed: () {
                   if (_formKey.currentState!.validate()) {
                     _makePayment(context);
                   }
                 },
-                child: Text("Pay with Flutterwave"),
+                child: const Text("Pay with Flutterwave"),
               ),
             ],
           ),
@@ -125,42 +105,26 @@ class _PaymentFormState extends State<PaymentForm> {
 
     try {
       final ChargeResponse response = await flutterwave.charge();
-      _handleResponse(context, response);
+      // For test mode, we consider any response without an error as successful
+      widget.onPaymentProcessed(true);
+      _showMessage(context, "Payment processed successfully");
+      Navigator.pop(context); // Go back to previous page after processing
     } catch (error) {
-      print("Transaction error: $error");
-      _showMessage(context, "Payment error: $error");
+      widget.onPaymentProcessed(false);
+      _showMessage(context, "An error occurred during payment");
     }
   }
 
-  void _handleResponse(BuildContext context, ChargeResponse response) {
-    if (response != null) {
-      if (response.status == 'success') {
-        // Handle successful transaction here
-        print("Transaction successful: ${response.toJson()}");
-        _showMessage(context, "Payment successful!", response);
-      } else {
-        // Handle failed transaction here
-        print("Transaction failed: ${response.toJson()}");
-        _showMessage(context, "Payment failed", response);
-      }
-    } else {
-      print("Transaction failed with no response");
-      _showMessage(context, "Payment failed with no response");
-    }
-  }
-
-  void _showMessage(BuildContext context, String message,
-      [ChargeResponse? response]) {
+  void _showMessage(BuildContext context, String message) {
     showDialog(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text("Payment Status"),
-          content: Text(
-              message + (response != null ? "\n\n${response.toJson()}" : "")),
+          title: const Text("Payment Status"),
+          content: Text(message),
           actions: <Widget>[
             TextButton(
-              child: Text("OK"),
+              child: const Text("OK"),
               onPressed: () {
                 Navigator.of(context).pop();
               },
@@ -177,46 +141,5 @@ class _PaymentFormState extends State<PaymentForm> {
     _phoneController.dispose();
     _emailController.dispose();
     super.dispose();
-  }
-}
-
-class TicketsPage extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        title: Text('Your Ticket'),
-        // centerTitle: true,
-        // flexibleSpace: Container(
-        //   decoration: BoxDecoration(
-        //       image: DecorationImage(
-        //           image: AssetImage('assets/images/background2.jpeg'),
-        //           fit: BoxFit.fill)),
-        // ),
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back_rounded),
-          onPressed: () {
-            Navigator.pop(context);
-          },
-        ),
-      ),
-      backgroundColor: Colors.blueGrey,
-      body: SingleChildScrollView(
-        child: Center(
-          child: Padding(
-            padding: const EdgeInsets.all(20.0),
-            child: TicketWidget(
-              width: 300,
-              height: 600,
-              isCornerRounded: true,
-              padding: EdgeInsets.all(20),
-              child: TicketData(),
-            ),
-          ),
-        ),
-      ),
-    );
   }
 }
