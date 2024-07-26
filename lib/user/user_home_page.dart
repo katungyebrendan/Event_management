@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart' as auth;
 import 'package:intl/intl.dart';
-import '../auth/login_page.dart';
 import 'event_detail.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'notification_page.dart';
@@ -19,7 +18,6 @@ class UserHomePage extends StatefulWidget {
 
 class _UserHomePageState extends State<UserHomePage> {
   final TextEditingController _searchController = TextEditingController();
-  bool _showRecommended = false; // Toggle for showing recommended events
   late NotificationService _notificationService;
   int _selectedIndex = 0; // Track the selected tab
   List<Map<String, dynamic>> _searchResults = [];
@@ -30,14 +28,6 @@ class _UserHomePageState extends State<UserHomePage> {
     super.initState();
     _notificationService =
         NotificationService(context); // Initialize NotificationService
-  }
-
-  Future<List<Map<String, dynamic>>> _fetchRecommendedEvents() async {
-    final user = auth.FirebaseAuth.instance.currentUser;
-    if (user != null) {
-      // Implement your logic to fetch recommended events for the user
-    }
-    return [];
   }
 
   Future<List<Map<String, dynamic>>> _fetchEvents(String category) async {
@@ -95,24 +85,22 @@ class _UserHomePageState extends State<UserHomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('FunExpo'),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () async {
-            await auth.FirebaseAuth.instance.signOut();
-            if (context.mounted) {
-              Navigator.pushReplacement(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => LoginPage(),
-                ),
-              );
-            }
-          },
+        automaticallyImplyLeading: false,
+        backgroundColor: const Color(0xff152377),
+        title: const Text(
+          'FunExpo',
+          style: TextStyle(
+            color: Color(0xffcf9306),
+            fontSize: 20.0,
+            fontWeight: FontWeight.bold,
+          ),
         ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.notifications),
+            icon: const Icon(
+              Icons.notifications,
+              color: Color(0xffc89508),
+            ),
             onPressed: () {
               Navigator.push(
                 context,
@@ -124,24 +112,10 @@ class _UserHomePageState extends State<UserHomePage> {
               );
             },
           ),
-          IconButton(
-            icon: const Icon(Icons.logout),
-            onPressed: () async {
-              await auth.FirebaseAuth.instance.signOut();
-              if (context.mounted) {
-                Navigator.pushReplacement(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => LoginPage(),
-                  ),
-                );
-              }
-            },
-          ),
         ],
       ),
       body: Container(
-        decoration: BoxDecoration(
+        decoration: const BoxDecoration(
           gradient: LinearGradient(
             colors: [Color(0xfffffef2), Color(0xfffffef2)],
             begin: Alignment.topCenter,
@@ -184,8 +158,7 @@ class _UserHomePageState extends State<UserHomePage> {
               ),
             ],
             currentIndex: _selectedIndex,
-            selectedItemColor: Color(0xffffffff),
-            // Change selected item color
+            selectedItemColor: const Color(0xffffffff),
             unselectedItemColor: Colors.grey,
             onTap: _onItemTapped,
           ),
@@ -209,7 +182,7 @@ class _UserHomePageState extends State<UserHomePage> {
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(50.0),
               ),
-              prefixIcon: Icon(Icons.search),
+              prefixIcon: const Icon(Icons.search),
             ),
             onChanged: (value) {
               _performSearch(value);
@@ -228,31 +201,6 @@ class _UserHomePageState extends State<UserHomePage> {
               },
             ),
           )
-        else if (_showRecommended)
-          Expanded(
-            child: FutureBuilder<List<Map<String, dynamic>>>(
-              future: _fetchRecommendedEvents(),
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(child: CircularProgressIndicator());
-                }
-                if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                  return const Center(
-                      child: Text('No recommended events yet.'));
-                }
-
-                var events = snapshot.data!;
-
-                return ListView.builder(
-                  itemCount: events.length,
-                  itemBuilder: (context, index) {
-                    var event = events[index];
-                    return EventCard(event: event);
-                  },
-                );
-              },
-            ),
-          )
         else
           Expanded(
             child: ListView(
@@ -267,16 +215,6 @@ class _UserHomePageState extends State<UserHomePage> {
           ),
       ],
     );
-  }
-
-  Widget _buildTicketsContent() {
-    return Center(
-      child: Text('Tickets Page Content'),
-    );
-  }
-
-  Widget _buildProfileContent() {
-    return ProfilePage(); // Return ProfilePage widget
   }
 
   Widget _buildCategorySection(String category) {
@@ -313,7 +251,7 @@ class _UserHomePageState extends State<UserHomePage> {
                 itemBuilder: (context, index) {
                   var event = events[index];
                   return SizedBox(
-                    width: 300, // Increased width for larger cards
+                    width: 250, // Increased width for larger cards
                     child: EventCard(event: event),
                   );
                 },
@@ -345,13 +283,13 @@ class EventCard extends StatelessWidget {
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16), // rounded edges
       ),
-      color: Color(0xff34424e),
+      color: const Color(0xff34424e),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           event['imageUrl'] != null && event['imageUrl'].isNotEmpty
               ? ClipRRect(
-                  borderRadius: BorderRadius.vertical(
+                  borderRadius: const BorderRadius.vertical(
                       top: Radius.circular(16)), // Rounded edges at the top
                   child: Image.network(
                     event['imageUrl'],
@@ -383,7 +321,7 @@ class EventCard extends StatelessWidget {
               eventDate != null
                   ? DateFormat('yyyy-MM-dd').format(eventDate)
                   : 'No Date',
-              style: TextStyle(color: Color(0xffffb322)),
+              style: const TextStyle(color: Color(0xffffb322)),
             ),
           ),
           Padding(

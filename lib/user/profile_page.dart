@@ -1,22 +1,10 @@
-import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:firebase_auth/firebase_auth.dart' as auth;
+import 'dart:io';
 import '../auth/login_page.dart';
-
-void main() => runApp(MyApp());
-
-class MyApp extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      home: ProfilePage(),
-      routes: {
-        '/login': (context) => LoginPage(),
-      },
-    );
-  }
-}
 
 class ProfilePage extends StatefulWidget {
   @override
@@ -24,81 +12,119 @@ class ProfilePage extends StatefulWidget {
 }
 
 class _ProfilePageState extends State<ProfilePage> {
-  final ImagePicker _picker = ImagePicker();
-  XFile? _image;
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final FirebaseStorage _storage = FirebaseStorage.instance;
 
-  Future<void> _pickImage() async {
-    final XFile? selectedImage =
-        await _picker.pickImage(source: ImageSource.gallery);
+  String? _username;
+  String? _email;
+  String? _profileImageUrl;
+  File? _imageFile;
 
-    setState(() {
-      _image = selectedImage;
-    });
+  @override
+  void initState() {
+    super.initState();
+    _loadUserData();
   }
 
-  void _logout() {
-    // Redirect to the logout page
-    Navigator.pushReplacementNamed(context, '/login');
+  Future<void> _loadUserData() async {
+    try {
+      User? user = _auth.currentUser;
+      if (user != null) {
+        DocumentSnapshot userData =
+            await _firestore.collection('users').doc(user.uid).get();
+        DocumentSnapshot profileData =
+            await _firestore.collection('profile').doc(user.uid).get();
+
+        setState(() {
+          _username = userData['username'];
+          _email = userData['email'];
+          _profileImageUrl = profileData['profileImageUrl'];
+        });
+      }
+    } catch (e) {
+      print("Failed to load user data: $e");
+    }
+  }
+
+  Future<void> _uploadImage() async {
+    final picker = ImagePicker();
+    try {
+      final pickedFile = await picker.pickImage(source: ImageSource.gallery);
+
+      if (pickedFile != null) {
+        setState(() {
+          _imageFile = File(pickedFile.path);
+        });
+
+        User? user = _auth.currentUser;
+        if (user != null) {
+          String fileName = 'profile_${user.uid}.jpg';
+          Reference storageRef = _storage.ref().child('images/$fileName');
+
+          UploadTask uploadTask = storageRef.putFile(_imageFile!);
+          TaskSnapshot taskSnapshot = await uploadTask;
+          String downloadUrl = await taskSnapshot.ref.getDownloadURL();
+
+          // Update only the 'profile' collection in Firestore
+          await _firestore.collection('profile').doc(user.uid).set({
+            'profileImageUrl': downloadUrl,
+          }, SetOptions(merge: true));
+
+          setState(() {
+            _profileImageUrl = downloadUrl;
+          });
+        }
+      }
+    } catch (e) {
+      print("Failed to upload image: $e");
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Profile Page'),
-      ),
-      body: Center(
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: <Widget>[
-              CircleAvatar(
-                radius: 50,
-                backgroundImage: _image != null
-                    ? FileImage(File(_image!.path))
-                    : AssetImage('assets/default-profile.png') as ImageProvider,
-              ),
-              SizedBox(height: 10),
-              ElevatedButton(
-                onPressed: _pickImage,
-                child: Text('Upload Profile Picture'),
-              ),
-              SizedBox(height: 20),
-              Text(
-                'Username',
-                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-              ),
-              SizedBox(height: 10),
-              Text(
-                'user@example.com',
-                style: TextStyle(fontSize: 16, color: Colors.grey),
-              ),
-              SizedBox(height: 30),
-              ElevatedButton(
-                onPressed: _logout,
-                child: Text('Logout'),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.redAccent,
-                ),
-              ),
-            ],
+        automaticallyImplyLeading: false,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.logout),
+            onPressed: () async {
+              await _auth.signOut();
+              if (context.mounted) {
+                Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => LoginPage(),
+                  ),
+                );
+              }
+            },
           ),
-        ),
-      ),
-    );
-  }
-}
-
-class LogoutPage extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('Logout Page'),
+        ],
       ),
       body: Center(
-        child: Text('You have been logged out!'),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            GestureDetector(
+              onTap: _uploadImage,
+              child: CircleAvatar(
+                radius: 50,
+                backgroundImage: _profileImageUrl != null
+                    ? NetworkImage(_profileImageUrl!)
+                    : null,
+                child: _profileImageUrl == null
+                    ? Icon(Icons.person, size: 50)
+                    : null,
+              ),
+            ),
+            SizedBox(height: 20),
+            Text('Username: ${_username ?? 'Loading...'}'),
+            SizedBox(height: 10),
+            Text('Email: ${_email ?? 'Loading...'}'),
+          ],
+        ),
       ),
     );
   }

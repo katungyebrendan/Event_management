@@ -12,60 +12,89 @@ class NotificationPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Notifications'),
+        title: Text(
+          'Notifications',
+          style: TextStyle(
+            color: Color(0xffcf9306),
+            fontSize: 20.0,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        backgroundColor: Color(0xff152377),
       ),
-      body: SingleChildScrollView(
-        child: Column(
-          children: List.generate(notifications.length, (index) {
-            final notification = notifications[index];
-            final title = notification['title'] ?? 'No Title';
-            final image = notification['image'] ?? '';
-            final description = notification['description'] ?? 'No Description';
-            final price = notification['price'] ?? '0';
-            final location = notification['location'] ?? 'No Location';
-            final dateStr =
-                notification['date'] ?? ''; // Ensure date is a string
-            DateTime date;
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            colors: [Color(0xfffffef2), Color(0xfffffef2)],
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+          ),
+        ),
+        child: SingleChildScrollView(
+          child: Column(
+            children: List.generate(notifications.length, (index) {
+              final notification = notifications[index];
+              final title = notification['title'] ?? 'No Title';
+              final image = notification['image'] ?? '';
+              final description =
+                  notification['description'] ?? 'No Description';
+              final price = notification['price'] ?? '0';
+              final location = notification['location'] ?? 'No Location';
+              final dateStr =
+                  notification['date'] ?? ''; // Ensure date is a string
+              DateTime date;
 
-            try {
-              date = DateTime.parse(dateStr);
-            } catch (e) {
-              date =
-                  DateTime.now(); // Fallback to current date if parsing fails
-            }
+              try {
+                date = DateTime.parse(dateStr);
+              } catch (e) {
+                date =
+                    DateTime.now(); // Fallback to current date if parsing fails
+              }
 
-            return GestureDetector(
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => EventDetailsPage(
-                      title: title,
-                      description: description,
-                      price: price,
-                      imageUrl: image,
-                      location: location,
-                      date: date,
+              return GestureDetector(
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => EventDetailsPage(
+                        title: title,
+                        description: description,
+                        price: price,
+                        imageUrl: image,
+                        location: location,
+                        date: date,
+                      ),
+                    ),
+                  );
+                },
+                child: Container(
+                  margin: EdgeInsets.symmetric(vertical: 5, horizontal: 10),
+                  decoration: BoxDecoration(
+                    color: Color(0xff34424e),
+                    border: Border.all(color: Color(0xff0b253a)),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: ListTile(
+                    leading: image.isNotEmpty
+                        ? ClipRRect(
+                            borderRadius: BorderRadius.circular(8.0),
+                            child: Image.network(image,
+                                width: 40, height: 40, fit: BoxFit.cover),
+                          )
+                        : Icon(Icons.image, size: 40, color: Color(0xffffb322)),
+                    title: Text(
+                      title,
+                      style: TextStyle(color: Color(0xffffb322)),
+                    ),
+                    subtitle: Text(
+                      "New event added: $title",
+                      style: TextStyle(color: Color(0xffcf9306)),
                     ),
                   ),
-                );
-              },
-              child: Container(
-                margin: EdgeInsets.symmetric(vertical: 5, horizontal: 10),
-                decoration: BoxDecoration(
-                  border: Border.all(color: Color(0xff0b253a)),
-                  borderRadius: BorderRadius.circular(10),
                 ),
-                child: ListTile(
-                  leading: image.isNotEmpty
-                      ? Image.network(image, width: 40, height: 40)
-                      : Icon(Icons.image, size: 40),
-                  title: Text(title),
-                  subtitle: Text("New event added: $title"),
-                ),
-              ),
-            );
-          }),
+              );
+            }),
+          ),
         ),
       ),
     );
