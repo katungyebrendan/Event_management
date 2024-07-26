@@ -6,6 +6,7 @@ import 'dart:convert';
 import 'package:intl/intl.dart';
 import 'map_page.dart';
 import 'payment_form.dart'; // Import the new PaymentForm file
+import 'tickets_page.dart' as tickets;
 
 void main() {
   runApp(MyApp());
@@ -164,6 +165,25 @@ class _EventDetailsPageState extends State<EventDetailsPage> {
                     },
                     child: const Text('Book Event'),
                   ),
+                  Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: ElevatedButton(
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => tickets.TicketsPage(
+                              title: widget.title,
+                              price: widget.price,
+                              location: widget.location,
+                              date: widget.date,
+                            ),
+                          ),
+                        );
+                      },
+                      child: const Text('find ticket'),
+                    ),
+                  )
                 ],
               ),
             ),
