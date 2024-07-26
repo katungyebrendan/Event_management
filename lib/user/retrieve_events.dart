@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:geolocator/geolocator.dart';
 import 'dart:math';
+import 'package:intl/intl.dart';
 import 'event_detail.dart'; // Ensure you import the EventDetailsPage
 
 class RetrieveEventsPage extends StatefulWidget {
@@ -23,6 +24,30 @@ class _RetrieveEventsPageState extends State<RetrieveEventsPage> {
   ];
 
   Future<Position> _getUserLocation() async {
+    bool serviceEnabled;
+    LocationPermission permission;
+
+    serviceEnabled = await Geolocator.isLocationServiceEnabled();
+    if (!serviceEnabled) {
+      // Location services are not enabled don't continue
+      return Future.error('Location services are disabled.');
+    }
+
+    permission = await Geolocator.checkPermission();
+    if (permission == LocationPermission.denied) {
+      permission = await Geolocator.requestPermission();
+      if (permission == LocationPermission.denied) {
+        // Permissions are denied, next time you could try to ask for permissions again
+        return Future.error('Location permissions are denied');
+      }
+    }
+
+    if (permission == LocationPermission.deniedForever) {
+      // Permissions are denied forever, handle appropriately
+      return Future.error(
+          'Location permissions are permanently denied, we cannot request permissions.');
+    }
+
     return await Geolocator.getCurrentPosition(
         desiredAccuracy: LocationAccuracy.high);
   }
@@ -52,8 +77,8 @@ class _RetrieveEventsPageState extends State<RetrieveEventsPage> {
     return events.where((event) {
       final data = event.data() as Map<String, dynamic>?;
       if (data == null) return false;
-      final lat = data['latitude'] as double?;
-      final lon = data['longitude'] as double?;
+      final lat = (data['latitude'] as num?)?.toDouble();
+      final lon = (data['longitude'] as num?)?.toDouble();
       if (lat == null || lon == null) return false;
       final distance = _calculateDistance(
           userPosition.latitude, userPosition.longitude, lat, lon);
@@ -65,259 +90,190 @@ class _RetrieveEventsPageState extends State<RetrieveEventsPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(
-          'FunExpo',
-          style: TextStyle(
-            color: Color(0xffcf9306),
-            fontSize: 20.0,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        backgroundColor: Color(0xff152377),
+        title: Text('Events Near You'),
+        backgroundColor: Colors.blue,
       ),
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            colors: [Color(0xfffffef2), Color(0xfffffef2)],
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-          ),
-        ),
-        child: FutureBuilder<Position>(
-          future: _getUserLocation(),
-          builder: (context, locationSnapshot) {
-            if (locationSnapshot.connectionState == ConnectionState.waiting) {
-              return Center(child: CircularProgressIndicator());
-            }
+      body: FutureBuilder<Position>(
+        future: _getUserLocation(),
+        builder: (context, locationSnapshot) {
+          if (locationSnapshot.connectionState == ConnectionState.waiting) {
+            return Center(child: CircularProgressIndicator());
+          }
 
-            if (locationSnapshot.hasError) {
-              return Center(child: Text('Error fetching location'));
-            }
+          if (locationSnapshot.hasError) {
+            return Center(child: Text('Error fetching location'));
+          }
 
-            if (!locationSnapshot.hasData) {
-              return Center(child: Text('Unable to determine location'));
-            }
+          if (!locationSnapshot.hasData) {
+            return Center(child: Text('Unable to determine location'));
+          }
 
-            final userPosition = locationSnapshot.data!;
+          final userPosition = locationSnapshot.data!;
 
-            return SingleChildScrollView(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(16.0),
-                    child: Text(
-                      'Events Near You',
-                      style: TextStyle(
-                        fontSize: 24,
-                        fontWeight: FontWeight.bold,
-                        color: Color(0xff3b372c),
+          return ListView(
+            children: <Widget>[
+              for (var category in _categories)
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        category.capitalizeFirstLetter(),
+                        style: TextStyle(
+                            fontSize: 20, fontWeight: FontWeight.bold),
                       ),
-                    ),
-                  ),
-                  ..._categories.map((category) => Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: FutureBuilder<List<DocumentSnapshot>>(
-                          future: _fetchEvents(userPosition, category, 30.0),
-                          builder: (context, snapshot) {
-                            if (snapshot.connectionState ==
-                                ConnectionState.waiting) {
-                              return Center(child: CircularProgressIndicator());
-                            }
+                      SizedBox(height: 8.0),
+                      FutureBuilder<List<DocumentSnapshot>>(
+                        future: _fetchEvents(userPosition, category,
+                            30.0), // Radius in kilometers
+                        builder: (context, snapshot) {
+                          if (snapshot.connectionState ==
+                              ConnectionState.waiting) {
+                            return Center(child: CircularProgressIndicator());
+                          }
 
-                            if (snapshot.hasError) {
-                              return Center(
-                                  child: Text('Error fetching events'));
-                            }
+                          if (snapshot.hasError) {
+                            return Center(child: Text('Error fetching events'));
+                          }
 
-                            if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                              return Center(child: Text('No events found'));
-                            }
+                          if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                            return Center(child: Text('No events found'));
+                          }
 
-                            final events = snapshot.data!;
+                          final events = snapshot.data!;
 
-                            return Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  category.capitalizeFirstLetter(),
-                                  style: TextStyle(
-                                    fontSize: 20,
-                                    fontWeight: FontWeight.bold,
-                                    color: Color(0xffcf9306),
-                                  ),
-                                ),
-                                SizedBox(height: 8.0),
-                                Container(
-                                  height: 350,
-                                  child: ListView.builder(
-                                    scrollDirection: Axis.horizontal,
-                                    itemCount: events.length,
-                                    itemBuilder: (context, index) {
-                                      final event = events[index];
-                                      final data =
-                                          event.data() as Map<String, dynamic>?;
+                          return Container(
+                            height: 300, // Adjusted height to avoid overflow
+                            child: ListView.builder(
+                              scrollDirection: Axis.horizontal,
+                              itemCount: events.length,
+                              itemBuilder: (context, index) {
+                                final event = events[index];
+                                final data =
+                                    event.data() as Map<String, dynamic>?;
 
-                                      final title = data != null &&
-                                              data.containsKey('title')
-                                          ? data['title'] as String
-                                          : 'Untitled';
-                                      final description = data != null &&
-                                              data.containsKey('description')
-                                          ? data['description'] as String
-                                          : 'No description available';
-                                      final price = data != null &&
-                                              data.containsKey('price')
-                                          ? data['price'].toString()
-                                          : 'N/A'; // Ensure price is a string
-                                      final location = data != null &&
-                                              data.containsKey('location')
-                                          ? data['location'] as String
-                                          : 'Location not specified';
-                                      final image = data != null &&
-                                              data.containsKey('imageUrl')
-                                          ? data['imageUrl'] as String
-                                          : '';
-                                      final date = data != null &&
-                                              data.containsKey('date')
-                                          ? data['date']
-                                          : 'Date not specified';
+                                final title =
+                                    data != null && data.containsKey('title')
+                                        ? data['title'] as String
+                                        : 'Untitled';
+                                final description = data != null &&
+                                        data.containsKey('description')
+                                    ? data['description'] as String
+                                    : 'No description available';
+                                final price =
+                                    data != null && data.containsKey('price')
+                                        ? data['price'].toString()
+                                        : 'N/A'; // Ensure price is a string
+                                final location =
+                                    data != null && data.containsKey('location')
+                                        ? data['location'] as String
+                                        : 'Location not specified';
+                                final image =
+                                    data != null && data.containsKey('imageUrl')
+                                        ? data['imageUrl'] as String
+                                        : '';
+                                final date =
+                                    data != null && data.containsKey('date')
+                                        ? data['date']
+                                        : 'Date not specified';
 
-                                      DateTime eventDate;
-                                      if (date is Timestamp) {
-                                        eventDate = date.toDate();
-                                      } else if (date is DateTime) {
-                                        eventDate = date;
-                                      } else if (date is String) {
-                                        eventDate = DateTime.tryParse(date) ??
-                                            DateTime.now();
-                                      } else {
-                                        eventDate = DateTime.now();
-                                      }
+                                DateTime eventDate;
+                                if (date is Timestamp) {
+                                  eventDate = date.toDate();
+                                } else if (date is DateTime) {
+                                  eventDate = date;
+                                } else if (date is String) {
+                                  eventDate =
+                                      DateTime.tryParse(date) ?? DateTime.now();
+                                } else {
+                                  eventDate = DateTime.now();
+                                }
 
-                                      return Container(
-                                        width: 200,
-                                        margin: EdgeInsets.symmetric(
-                                            horizontal: 8.0),
-                                        child: Card(
-                                          shape: RoundedRectangleBorder(
-                                            borderRadius:
-                                                BorderRadius.circular(16),
-                                          ),
-                                          color: const Color(0xff34424e),
-                                          child: Column(
-                                            crossAxisAlignment:
-                                                CrossAxisAlignment.start,
-                                            children: [
-                                              image.isNotEmpty
-                                                  ? ClipRRect(
-                                                      borderRadius:
-                                                          const BorderRadius
-                                                                  .vertical(
-                                                              top: Radius
-                                                                  .circular(
-                                                                      16)),
-                                                      child: Image.network(
-                                                        image,
-                                                        width: double.infinity,
-                                                        height: 150,
-                                                        fit: BoxFit.cover,
-                                                        errorBuilder: (context,
-                                                            error, stackTrace) {
-                                                          return Center(
-                                                            child: Text(
-                                                              'Image failed to load',
-                                                              style: TextStyle(
-                                                                  color: Colors
-                                                                      .red),
-                                                            ),
-                                                          );
-                                                        },
-                                                      ),
-                                                    )
-                                                  : Container(
-                                                      color: Colors.grey,
-                                                      width: double.infinity,
-                                                      height: 150,
-                                                      child: const Icon(
-                                                          Icons.image,
-                                                          size: 100),
-                                                    ),
-                                              Padding(
-                                                padding:
-                                                    const EdgeInsets.all(8.0),
-                                                child: Text(
-                                                  title,
-                                                  style: const TextStyle(
-                                                    fontSize: 20,
-                                                    fontWeight: FontWeight.bold,
-                                                    color: Color(0xffffb322),
+                                return Container(
+                                  width: 200, // Adjust the width as needed
+                                  margin: EdgeInsets.symmetric(horizontal: 8.0),
+                                  child: Card(
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        image.isNotEmpty
+                                            ? Image.network(image,
+                                                width: double.infinity,
+                                                height: 150, // Adjusted height
+                                                fit: BoxFit.cover, errorBuilder:
+                                                    (context, error,
+                                                        stackTrace) {
+                                                return Center(
+                                                  child: Text(
+                                                    'Image failed to load',
+                                                    style: TextStyle(
+                                                        color: Colors.red),
+                                                  ),
+                                                );
+                                              })
+                                            : Container(
+                                                color: Colors.grey,
+                                                width: double.infinity,
+                                                height: 150, // Adjusted height
+                                                child: const Icon(Icons.image,
+                                                    size: 100),
+                                              ),
+                                        Padding(
+                                          padding: const EdgeInsets.all(8.0),
+                                          child: Text(title,
+                                              style: TextStyle(
+                                                  fontWeight: FontWeight.bold)),
+                                        ),
+                                        Padding(
+                                          padding: const EdgeInsets.symmetric(
+                                              horizontal: 8.0),
+                                          child: Text(description,
+                                              maxLines: 2,
+                                              overflow: TextOverflow.ellipsis),
+                                        ),
+                                        Padding(
+                                          padding: const EdgeInsets.all(8.0),
+                                          child: Text('Price: \$${price}'),
+                                        ),
+                                        Padding(
+                                          padding: const EdgeInsets.all(8.0),
+                                          child: ElevatedButton(
+                                            onPressed: () {
+                                              Navigator.push(
+                                                context,
+                                                MaterialPageRoute(
+                                                  builder: (context) =>
+                                                      EventDetailsPage(
+                                                    title: title,
+                                                    description: description,
+                                                    price: price,
+                                                    imageUrl: image,
+                                                    location: location,
+                                                    date: eventDate,
                                                   ),
                                                 ),
-                                              ),
-                                              Padding(
-                                                padding:
-                                                    const EdgeInsets.symmetric(
-                                                        horizontal: 8.0),
-                                                child: Text(
-                                                  description,
-                                                  maxLines: 2,
-                                                  overflow:
-                                                      TextOverflow.ellipsis,
-                                                  style: const TextStyle(
-                                                      color: Color(0xffffb322)),
-                                                ),
-                                              ),
-                                              Padding(
-                                                padding:
-                                                    const EdgeInsets.all(8.0),
-                                                child: Text(
-                                                  'Price: \$${price}',
-                                                  style: const TextStyle(
-                                                      color: Color(0xffffb322)),
-                                                ),
-                                              ),
-                                              Padding(
-                                                padding:
-                                                    const EdgeInsets.all(8.0),
-                                                child: ElevatedButton(
-                                                  onPressed: () {
-                                                    Navigator.push(
-                                                      context,
-                                                      MaterialPageRoute(
-                                                        builder: (context) =>
-                                                            EventDetailsPage(
-                                                          title: title,
-                                                          description:
-                                                              description,
-                                                          price: price,
-                                                          imageUrl: image,
-                                                          location: location,
-                                                          date: eventDate,
-                                                        ),
-                                                      ),
-                                                    );
-                                                  },
-                                                  child: const Text('Details'),
-                                                ),
-                                              ),
-                                            ],
+                                              );
+                                            },
+                                            child: const Text('Details'),
                                           ),
                                         ),
-                                      );
-                                    },
+                                      ],
+                                    ),
                                   ),
-                                ),
-                              ],
-                            );
-                          },
-                        ),
-                      )),
-                ],
-              ),
-            );
-          },
-        ),
+                                );
+                              },
+                            ),
+                          );
+                        },
+                      ),
+                    ],
+                  ),
+                ),
+            ],
+          );
+        },
       ),
     );
   }
@@ -326,7 +282,7 @@ class _RetrieveEventsPageState extends State<RetrieveEventsPage> {
 // Extension method to capitalize the first letter of a string
 extension StringCapitalization on String {
   String capitalizeFirstLetter() {
-    if (this.isEmpty) {
+    if (this == null || this.isEmpty) {
       return '';
     }
     return '${this[0].toUpperCase()}${this.substring(1).toLowerCase()}';
