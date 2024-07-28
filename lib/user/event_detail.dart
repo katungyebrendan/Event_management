@@ -61,10 +61,19 @@ class _EventDetailsPageState extends State<EventDetailsPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Event Details'),
+        backgroundColor: Colors.blueGrey,
+        title: const Text(
+          'Event Details',
+          style: TextStyle(
+            color: Color(0xffffffff),
+            fontSize: 20.0,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
       ),
       body: SingleChildScrollView(
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             widget.imageUrl.isNotEmpty
                 ? Image.network(
@@ -87,7 +96,7 @@ class _EventDetailsPageState extends State<EventDetailsPage> {
                   Text(
                     widget.title,
                     style: const TextStyle(
-                      fontSize: 24,
+                      fontSize: 28,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
@@ -96,6 +105,7 @@ class _EventDetailsPageState extends State<EventDetailsPage> {
                     DateFormat('yyyy-MM-dd').format(widget.date),
                     style: TextStyle(
                       color: Colors.grey[600],
+                      fontSize: 16,
                     ),
                   ),
                   const SizedBox(height: 8),
@@ -117,8 +127,9 @@ class _EventDetailsPageState extends State<EventDetailsPage> {
                     child: Text(
                       'Location: ${widget.location}',
                       style: TextStyle(
-                        color: Colors.blue,
+                        color: Color(0xff1d7679),
                         decoration: TextDecoration.underline,
+                        fontSize: 16,
                       ),
                     ),
                   ),
@@ -135,7 +146,7 @@ class _EventDetailsPageState extends State<EventDetailsPage> {
                     widget.description,
                     style: const TextStyle(fontSize: 16),
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 24),
                   ElevatedButton(
                     onPressed: () {
                       Navigator.push(
@@ -147,29 +158,46 @@ class _EventDetailsPageState extends State<EventDetailsPage> {
                         ),
                       );
                     },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Color(0xffb97c0d),
+                      foregroundColor: Color(0xffffffff),
+                      padding:
+                          EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+                      textStyle: TextStyle(fontSize: 18),
+                    ),
                     child: const Text('Book Event'),
                   ),
-                  Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: ElevatedButton(
-                      onPressed: _isPaymentProcessed
-                          ? () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => tickets.TicketsPage(
-                                    title: widget.title,
-                                    price: widget.price,
-                                    location: widget.location,
-                                    date: widget.date,
-                                  ),
-                                ),
-                              );
-                            }
-                          : null,
-                      child: const Text('Find Ticket'),
+
+                  const SizedBox(height: 16),
+                  Center(
+                    child: SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton(
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => tickets.TicketsPage(
+                                title: widget.title,
+                                price: widget.price,
+                                location: widget.location,
+                                date: widget.date,
+                              ),
+                            ),
+                          );
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Color(0xff0c2e49),
+                          foregroundColor: Colors.white,
+                          padding: EdgeInsets.symmetric(vertical: 16),
+                          textStyle: TextStyle(fontSize: 18),
+                        ),
+                        child: const Text('Find Tickets'),
+                      ),
+
+                  
                     ),
-                  )
+                  ),
                 ],
               ),
             ),
