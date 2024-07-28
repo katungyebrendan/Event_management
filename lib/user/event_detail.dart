@@ -3,32 +3,8 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:intl/intl.dart';
 import 'map_page.dart';
-import 'payment_form.dart'; // Import the new PaymentForm file
+import 'payment_form.dart';
 import 'tickets_page.dart' as tickets;
-
-void main() {
-  runApp(MyApp());
-}
-
-class MyApp extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Mobile Money Deposit',
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
-      ),
-      home: EventDetailsPage(
-        title: 'Event Title',
-        description: 'Event Description',
-        price: '1000',
-        imageUrl: 'https://via.placeholder.com/300',
-        location: 'Kampala',
-        date: DateTime.now(),
-      ),
-    );
-  }
-}
 
 class EventDetailsPage extends StatefulWidget {
   final String title;
@@ -73,6 +49,14 @@ class EventDetailsPage extends StatefulWidget {
 }
 
 class _EventDetailsPageState extends State<EventDetailsPage> {
+  bool _isPaymentProcessed = false;
+
+  void _handlePaymentProcessed(bool status) {
+    setState(() {
+      _isPaymentProcessed = status;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -168,7 +152,9 @@ class _EventDetailsPageState extends State<EventDetailsPage> {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => PaymentForm(),
+                          builder: (context) => PaymentForm(
+                            onPaymentProcessed: _handlePaymentProcessed,
+                          ),
                         ),
                       );
                     },
@@ -181,6 +167,7 @@ class _EventDetailsPageState extends State<EventDetailsPage> {
                     ),
                     child: const Text('Book Event'),
                   ),
+
                   const SizedBox(height: 16),
                   Center(
                     child: SizedBox(
@@ -207,6 +194,8 @@ class _EventDetailsPageState extends State<EventDetailsPage> {
                         ),
                         child: const Text('Find Tickets'),
                       ),
+
+                  
                     ),
                   ),
                 ],
