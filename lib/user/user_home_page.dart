@@ -4,10 +4,13 @@ import 'package:intl/intl.dart';
 import 'event_detail.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'notification_page.dart';
-import 'notification_service.dart'; // Import NotificationService
-import 'retrieve_events.dart'; // Import the RetrieveEventsPage
+import 'notification_service.dart';
+import 'retrieve_events.dart';
 import 'tickets_page.dart';
-import 'profile_page.dart'; // Import ProfilePage
+import 'profile_page.dart';
+import 'all_tickets_page.dart'; // Import the EventSearchDelegate
+
+import 'event_search_delegate.dart'; // Import the EventSearchDelegate
 
 class UserHomePage extends StatefulWidget {
   const UserHomePage({Key? key}) : super(key: key);
@@ -17,17 +20,31 @@ class UserHomePage extends StatefulWidget {
 }
 
 class _UserHomePageState extends State<UserHomePage> {
-  final TextEditingController _searchController = TextEditingController();
   late NotificationService _notificationService;
   int _selectedIndex = 0; // Track the selected tab
-  List<Map<String, dynamic>> _searchResults = [];
-  bool _isSearching = false;
+
+  List<Map<String, dynamic>> allEvents = []; // Store all events for searching
 
   @override
   void initState() {
     super.initState();
     _notificationService =
         NotificationService(context); // Initialize NotificationService
+    _fetchAllEvents(); // Fetch all events on init
+  }
+
+  Future<void> _fetchAllEvents() async {
+    final categories = ['music', 'cinema', 'sports', 'dinner', 'beach'];
+    List<Map<String, dynamic>> events = [];
+
+    for (var category in categories) {
+      final categoryEvents = await _fetchEvents(category);
+      events.addAll(categoryEvents);
+    }
+
+    setState(() {
+      allEvents = events;
+    });
   }
 
   Future<List<Map<String, dynamic>>> _fetchEvents(String category) async {
@@ -41,79 +58,59 @@ class _UserHomePageState extends State<UserHomePage> {
     return events;
   }
 
-  Future<void> _performSearch(String query) async {
-    setState(() {
-      _isSearching = true;
-    });
-
-    final querySnapshot = await FirebaseFirestore.instance
-        .collectionGroup('events')
-        .where('title', isGreaterThanOrEqualTo: query)
-        .where('title', isLessThanOrEqualTo: query + '\uf8ff')
-        .get();
-
-    final searchResults = querySnapshot.docs.map((doc) {
-      final data = doc.data() as Map<String, dynamic>;
-      data['id'] = doc.id;
-      return data;
-    }).toList();
-
-    setState(() {
-      _searchResults = searchResults;
-      _isSearching = false;
-    });
-  }
-
   void _onItemTapped(int index) {
-    if (index == 1) {
-      // Navigate to RetrieveEventsPage directly when Explore tab is selected
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => RetrieveEventsPage(
-              location: 'example_location'), // Pass the location or category
-        ),
-      );
-    } else {
-      setState(() {
-        _selectedIndex = index;
-      });
-    }
+    setState(() {
+      _selectedIndex = index;
+    });
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        automaticallyImplyLeading: false,
-        backgroundColor: const Color(0xff152377),
-        title: const Text(
-          'FunExpo',
-          style: TextStyle(
-            color: Color(0xffcf9306),
-            fontSize: 20.0,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        actions: [
-          IconButton(
-            icon: const Icon(
-              Icons.notifications,
-              color: Color(0xffc89508),
-            ),
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => NotificationPage(
-                    notifications: _notificationService.notifications,
-                  ),
+      appBar: _selectedIndex == 0 // Only show AppBar for UserHomePage
+          ? AppBar(
+              automaticallyImplyLeading: false,
+              backgroundColor: const Color(0xff436b87),
+              title: const Text(
+                'FunExpo',
+                style: TextStyle(
+                  color: Color(0xffffffff),
+                  fontSize: 20.0,
+                  fontWeight: FontWeight.bold,
                 ),
-              );
-            },
-          ),
-        ],
-      ),
+              ),
+              actions: [
+                IconButton(
+                  icon: const Icon(
+                    Icons.search,
+                    color: Color(0xffffffff),
+                  ),
+                  onPressed: () {
+                    showSearch(
+                      context: context,
+                      delegate: EventSearchDelegate(allEvents),
+                    );
+                  },
+                ),
+                // IconButton(
+                //   icon: const Icon(
+                //     Icons.notifications,
+                //     color: Color(0xfffefefe),
+                //   ),
+                //   onPressed: () {
+                //     Navigator.push(
+                //       context,
+                //       MaterialPageRoute(
+                //         builder: (context) => NotificationPage(
+                //           notifications: _notificationService.notifications,
+                //         ),
+                //       ),
+                //     );
+                //   },
+                // ),
+              ],
+            )
+          : null, // No AppBar for other pages
       body: Container(
         decoration: const BoxDecoration(
           gradient: LinearGradient(
@@ -122,16 +119,17 @@ class _UserHomePageState extends State<UserHomePage> {
             end: Alignment.bottomCenter,
           ),
         ),
-        child: _selectedIndex == 0
-            ? _buildHomeContent()
-            : _selectedIndex == 2
-                ? TicketsPage(
-                    title: 'title',
-                    price: 'price',
-                    location: 'location',
-                    date: DateTime.parse('2022-01-08'),
-                  )
-                : ProfilePage(), // Show ProfilePage when Profile tab is selected
+        child: IndexedStack(
+          index: _selectedIndex,
+          children: [
+            _buildHomeContent(),
+            RetrieveEventsPage(location: 'example_location'),
+            NotificationPage(
+              notifications: _notificationService.notifications,
+            ),
+            ProfilePage(),
+          ],
+        ),
       ),
       bottomNavigationBar: Container(
         decoration: BoxDecoration(
@@ -144,22 +142,22 @@ class _UserHomePageState extends State<UserHomePage> {
               BottomNavigationBarItem(
                 icon: Icon(Icons.home, color: Color(0xffffffff)),
                 label: 'Home',
-                backgroundColor: Color(0xff152377),
+                backgroundColor: Color(0xff012b53),
               ),
               BottomNavigationBarItem(
                 icon: Icon(Icons.explore, color: Color(0xffffffff)),
                 label: 'Explore',
-                backgroundColor: Color(0xff152377),
+                backgroundColor: Color(0xff012b53),
               ),
               BottomNavigationBarItem(
-                icon: Icon(Icons.confirmation_number, color: Color(0xffffffff)),
-                label: 'Tickets',
-                backgroundColor: Color(0xff152377),
+                icon: Icon(Icons.notifications, color: Color(0xffffffff)),
+                label: 'notifications',
+                backgroundColor: Color(0xff012b53),
               ),
               BottomNavigationBarItem(
                 icon: Icon(Icons.person, color: Color(0xffffffff)),
                 label: 'Profile',
-                backgroundColor: Color(0xff152377),
+                backgroundColor: Color(0xff012b53),
               ),
             ],
             currentIndex: _selectedIndex,
@@ -176,48 +174,17 @@ class _UserHomePageState extends State<UserHomePage> {
     return Column(
       mainAxisAlignment: MainAxisAlignment.start,
       children: [
-        Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: TextField(
-            controller: _searchController,
-            decoration: InputDecoration(
-              filled: true, // fill the background with a color
-              fillColor: Colors.white,
-              labelText: 'Search Events',
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(50.0),
-              ),
-              prefixIcon: const Icon(Icons.search),
-            ),
-            onChanged: (value) {
-              _performSearch(value);
-            },
+        Expanded(
+          child: ListView(
+            children: [
+              _buildCategorySection('Music'),
+              _buildCategorySection('Cinema'),
+              _buildCategorySection('Sports'),
+              _buildCategorySection('Dinner'),
+              _buildCategorySection('Beach'),
+            ],
           ),
         ),
-        if (_isSearching)
-          const Center(child: CircularProgressIndicator())
-        else if (_searchResults.isNotEmpty)
-          Expanded(
-            child: ListView.builder(
-              itemCount: _searchResults.length,
-              itemBuilder: (context, index) {
-                var event = _searchResults[index];
-                return EventCard(event: event);
-              },
-            ),
-          )
-        else
-          Expanded(
-            child: ListView(
-              children: [
-                _buildCategorySection('Music'),
-                _buildCategorySection('Cinema'),
-                _buildCategorySection('Sports'),
-                _buildCategorySection('Dinner'),
-                _buildCategorySection('Beach'),
-              ],
-            ),
-          ),
       ],
     );
   }
@@ -288,7 +255,7 @@ class EventCard extends StatelessWidget {
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16), // rounded edges
       ),
-      color: const Color(0xff34424e),
+      color: const Color(0xffecfefe),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -316,7 +283,7 @@ class EventCard extends StatelessWidget {
               style: const TextStyle(
                 fontSize: 20, // Increased font size
                 fontWeight: FontWeight.bold,
-                color: Color(0xffffb322),
+                color: Color(0xff040424),
               ),
             ),
           ),
@@ -326,7 +293,7 @@ class EventCard extends StatelessWidget {
               eventDate != null
                   ? DateFormat('yyyy-MM-dd').format(eventDate)
                   : 'No Date',
-              style: const TextStyle(color: Color(0xffffb322)),
+              style: const TextStyle(color: Color(0xff040424)),
             ),
           ),
           Padding(
@@ -350,7 +317,7 @@ class EventCard extends StatelessWidget {
               child: const Text(
                 'Details',
                 style: TextStyle(
-                    fontWeight: FontWeight.bold, color: Color(0xff181716)),
+                    fontWeight: FontWeight.bold, color: Color(0xff040424)),
               ),
             ),
           ),

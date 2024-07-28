@@ -15,12 +15,12 @@ class NotificationPage extends StatelessWidget {
         title: Text(
           'Notifications',
           style: TextStyle(
-            color: Color(0xffcf9306),
+            color: Color(0xffffffff),
             fontSize: 20.0,
             fontWeight: FontWeight.bold,
           ),
         ),
-        backgroundColor: Color(0xff152377),
+        backgroundColor: Color(0xff436b87),
       ),
       body: Container(
         decoration: const BoxDecoration(
@@ -70,8 +70,8 @@ class NotificationPage extends StatelessWidget {
                 child: Container(
                   margin: EdgeInsets.symmetric(vertical: 5, horizontal: 10),
                   decoration: BoxDecoration(
-                    color: Color(0xff34424e),
-                    border: Border.all(color: Color(0xff0b253a)),
+                    color: Color(0xffecfefe),
+                    border: Border.all(color: Color(0xffecfefe)),
                     borderRadius: BorderRadius.circular(10),
                   ),
                   child: ListTile(
@@ -84,11 +84,11 @@ class NotificationPage extends StatelessWidget {
                         : Icon(Icons.image, size: 40, color: Color(0xffffb322)),
                     title: Text(
                       title,
-                      style: TextStyle(color: Color(0xffffb322)),
+                      style: TextStyle(color: Color(0xff0a2942)),
                     ),
                     subtitle: Text(
                       "New event added: $title",
-                      style: TextStyle(color: Color(0xffcf9306)),
+                      style: TextStyle(color: Color(0xff0a2942)),
                     ),
                   ),
                 ),

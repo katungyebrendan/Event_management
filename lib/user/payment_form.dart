@@ -207,13 +207,13 @@ class TicketsPage extends StatelessWidget {
         child: Center(
           child: Padding(
             padding: const EdgeInsets.all(20.0),
-            child: TicketWidget(
-              width: 300,
-              height: 600,
-              isCornerRounded: true,
-              padding: EdgeInsets.all(20),
-              child: TicketData(),
-            ),
+            // child: TicketWidget(
+            //   width: 300,
+            //   height: 600,
+            //   isCornerRounded: true,
+            //   padding: EdgeInsets.all(20),
+            //   // child: TicketData(),
+            // ),
           ),
         ),
       ),

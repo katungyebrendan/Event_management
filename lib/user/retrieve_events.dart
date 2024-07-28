@@ -93,7 +93,7 @@ class _RetrieveEventsPageState extends State<RetrieveEventsPage> {
         title: Text(
           'Events Near You',
           style: TextStyle(
-            color: Color(0xffcf9306),
+            color: Color(0xffffffff),
             fontSize: 20.0,
             fontWeight: FontWeight.bold,
           ),
@@ -149,7 +149,7 @@ class _RetrieveEventsPageState extends State<RetrieveEventsPage> {
                           style: TextStyle(
                             fontSize: 20,
                             fontWeight: FontWeight.bold,
-                            color: Color(0xffcf9306),
+                            color: Color(0xff0a0a33),
                           ),
                         ),
                         SizedBox(height: 8.0),
@@ -227,7 +227,7 @@ class _RetrieveEventsPageState extends State<RetrieveEventsPage> {
                                       shape: RoundedRectangleBorder(
                                         borderRadius: BorderRadius.circular(16),
                                       ),
-                                      color: const Color(0xff34424e),
+                                      color: const Color(0xffecfefe),
                                       child: Column(
                                         crossAxisAlignment:
                                             CrossAxisAlignment.start,
@@ -267,7 +267,7 @@ class _RetrieveEventsPageState extends State<RetrieveEventsPage> {
                                               style: const TextStyle(
                                                 fontSize: 20,
                                                 fontWeight: FontWeight.bold,
-                                                color: Color(0xffffb322),
+                                                color: Color(0xff0a173a),
                                               ),
                                             ),
                                           ),
@@ -278,14 +278,14 @@ class _RetrieveEventsPageState extends State<RetrieveEventsPage> {
                                                 maxLines: 2,
                                                 overflow: TextOverflow.ellipsis,
                                                 style: const TextStyle(
-                                                    color: Color(0xffffb322))),
+                                                    color: Color(0xff0a173a))),
                                           ),
                                           Padding(
                                             padding: const EdgeInsets.all(8.0),
                                             child: Text(
                                               'Price: \$${price}',
                                               style: const TextStyle(
-                                                  color: Color(0xffffb322)),
+                                                  color: Color(0xff0a173a)),
                                             ),
                                           ),
                                           Padding(
@@ -309,9 +309,9 @@ class _RetrieveEventsPageState extends State<RetrieveEventsPage> {
                                               },
                                               style: ElevatedButton.styleFrom(
                                                 backgroundColor:
-                                                    const Color(0xffcf9306),
+                                                    const Color(0xffffffff),
                                                 textStyle: const TextStyle(
-                                                  color: Color(0xff34424e),
+                                                  color: Color(0xff0a173a),
                                                 ),
                                               ),
                                               child: const Text('Details'),
