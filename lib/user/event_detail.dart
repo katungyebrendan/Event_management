@@ -86,7 +86,8 @@ class _EventDetailsPageState extends State<EventDetailsPage> {
                     color: Colors.grey,
                     width: double.infinity,
                     height: 250,
-                    child: const Icon(Icons.image, size: 100),
+                    child:
+                        const Icon(Icons.image, size: 100, color: Colors.grey),
                   ),
             Padding(
               padding: const EdgeInsets.all(16.0),
@@ -98,6 +99,7 @@ class _EventDetailsPageState extends State<EventDetailsPage> {
                     style: const TextStyle(
                       fontSize: 28,
                       fontWeight: FontWeight.bold,
+                      color: Colors.blueAccent,
                     ),
                   ),
                   const SizedBox(height: 8),
@@ -167,7 +169,6 @@ class _EventDetailsPageState extends State<EventDetailsPage> {
                     ),
                     child: const Text('Book Event'),
                   ),
-
                   const SizedBox(height: 16),
                   Center(
                     child: SizedBox(
@@ -194,8 +195,6 @@ class _EventDetailsPageState extends State<EventDetailsPage> {
                         ),
                         child: const Text('Find Tickets'),
                       ),
-
-                  
                     ),
                   ),
                 ],
