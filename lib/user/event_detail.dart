@@ -70,6 +70,12 @@ class _EventDetailsPageState extends State<EventDetailsPage> {
             fontWeight: FontWeight.bold,
           ),
         ),
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back),
+          onPressed: () {
+            Navigator.pop(context);
+          },
+        ),
       ),
       body: SingleChildScrollView(
         child: Column(
@@ -141,12 +147,16 @@ class _EventDetailsPageState extends State<EventDetailsPage> {
                     style: const TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
+                      color: Color(0xFF37474F),
                     ),
                   ),
                   const SizedBox(height: 16),
                   Text(
                     widget.description,
-                    style: const TextStyle(fontSize: 16),
+                    style: const TextStyle(
+                      fontSize: 16,
+                      color: Colors.black87,
+                    ),
                   ),
                   const SizedBox(height: 24),
                   ElevatedButton(
@@ -163,6 +173,9 @@ class _EventDetailsPageState extends State<EventDetailsPage> {
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Color(0xffb97c0d),
                       foregroundColor: Color(0xffffffff),
+                      //
+                      //primary: Colors.blueAccent,
+                      //onPrimary: Colors.white,
                       padding:
                           EdgeInsets.symmetric(horizontal: 32, vertical: 16),
                       textStyle: TextStyle(fontSize: 18),

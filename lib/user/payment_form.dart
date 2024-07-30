@@ -27,6 +27,11 @@ class _PaymentFormState extends State<PaymentForm> {
           key: _formKey,
           child: Column(
             children: [
+              Image.asset(
+                  'assets/images/flutterwave_logo.png'), // Replace with your logo path
+              SizedBox(height: 20),
+              //Adjust height as needed
+
               TextFormField(
                 controller: _amountController,
                 decoration: const InputDecoration(labelText: 'Amount'),
@@ -144,7 +149,6 @@ class _PaymentFormState extends State<PaymentForm> {
   }
 }
 
-
 class TicketsPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
@@ -185,4 +189,3 @@ class TicketsPage extends StatelessWidget {
     );
   }
 }
-
