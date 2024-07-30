@@ -161,6 +161,7 @@ class _EventDetailsPageState extends State<EventDetailsPage> {
                       fontWeight: FontWeight.bold,
                       color: Color(0xFF37474F),
                     ),
+                    ),
                   Row(
                     children: [
                       const SizedBox(width: 8),
