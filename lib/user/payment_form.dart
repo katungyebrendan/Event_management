@@ -108,10 +108,12 @@ class _PaymentFormState extends State<PaymentForm> {
       // For test mode, we consider any response without an error as successful
       widget.onPaymentProcessed(true);
       _showMessage(context, "Payment processed successfully");
-      Navigator.pop(context); // Go back to previous page after processing
+      Navigator.pop(
+          context, true); // Return true to indicate successful payment
     } catch (error) {
       widget.onPaymentProcessed(false);
       _showMessage(context, "An error occurred during payment");
+      Navigator.pop(context, false); // Return false to indicate failed payment
     }
   }
 
@@ -144,8 +146,20 @@ class _PaymentFormState extends State<PaymentForm> {
   }
 }
 
-
 class TicketsPage extends StatelessWidget {
+  final String title;
+  final String price;
+  final String location;
+  final DateTime date;
+
+  const TicketsPage({
+    Key? key,
+    required this.title,
+    required this.price,
+    required this.location,
+    required this.date,
+  }) : super(key: key);
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -153,13 +167,6 @@ class TicketsPage extends StatelessWidget {
         backgroundColor: Colors.transparent,
         elevation: 0,
         title: Text('Your Ticket'),
-        // centerTitle: true,
-        // flexibleSpace: Container(
-        //   decoration: BoxDecoration(
-        //       image: DecorationImage(
-        //           image: AssetImage('assets/images/background2.jpeg'),
-        //           fit: BoxFit.fill)),
-        // ),
         leading: IconButton(
           icon: Icon(Icons.arrow_back_rounded),
           onPressed: () {
@@ -172,17 +179,22 @@ class TicketsPage extends StatelessWidget {
         child: Center(
           child: Padding(
             padding: const EdgeInsets.all(20.0),
-            // child: TicketWidget(
-            //   width: 300,
-            //   height: 600,
-            //   isCornerRounded: true,
-            //   padding: EdgeInsets.all(20),
-            //   // child: TicketData(),
-            // ),
+            child: Column(
+              children: [
+                Text(
+                  'Event: $title',
+                  style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                ),
+                SizedBox(height: 20),
+                Text('Price: $price'),
+                Text('Location: $location'),
+                Text('Date: ${date.toString()}'),
+                // Add more ticket details as needed
+              ],
+            ),
           ),
         ),
       ),
     );
   }
 }
-

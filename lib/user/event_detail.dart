@@ -167,8 +167,8 @@ class _EventDetailsPageState extends State<EventDetailsPage> {
                   ),
                   const SizedBox(height: 24),
                   ElevatedButton(
-                    onPressed: () {
-                      Navigator.push(
+                    onPressed: () async {
+                      final result = await Navigator.push(
                         context,
                         MaterialPageRoute(
                           builder: (context) => PaymentForm(
@@ -176,6 +176,11 @@ class _EventDetailsPageState extends State<EventDetailsPage> {
                           ),
                         ),
                       );
+                      if (result == true) {
+                        setState(() {
+                          _isPaymentProcessed = true;
+                        });
+                      }
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Color(0xffb97c0d),
@@ -191,19 +196,21 @@ class _EventDetailsPageState extends State<EventDetailsPage> {
                     child: SizedBox(
                       width: double.infinity,
                       child: ElevatedButton(
-                        onPressed: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => tickets.TicketsPage(
-                                title: widget.title,
-                                price: widget.price,
-                                location: widget.location,
-                                date: widget.date,
-                              ),
-                            ),
-                          );
-                        },
+                        onPressed: _isPaymentProcessed
+                            ? () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => tickets.TicketsPage(
+                                      title: widget.title,
+                                      price: widget.price,
+                                      location: widget.location,
+                                      date: widget.date,
+                                    ),
+                                  ),
+                                );
+                              }
+                            : null,
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Color(0xff0c2e49),
                           foregroundColor: Colors.white,
