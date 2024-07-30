@@ -109,12 +109,18 @@ class _EventDetailsPageState extends State<EventDetailsPage> {
                     ),
                   ),
                   const SizedBox(height: 8),
-                  Text(
-                    DateFormat('yyyy-MM-dd').format(widget.date),
-                    style: TextStyle(
-                      color: Colors.grey[600],
-                      fontSize: 16,
-                    ),
+                  Row(
+                    children: [
+                      Icon(Icons.calendar_today, color: Colors.grey[600]),
+                      const SizedBox(width: 8),
+                      Text(
+                        DateFormat('yyyy-MM-dd').format(widget.date),
+                        style: TextStyle(
+                          color: Colors.grey[600],
+                          fontSize: 16,
+                        ),
+                      ),
+                    ],
                   ),
                   const SizedBox(height: 8),
                   GestureDetector(
@@ -132,13 +138,19 @@ class _EventDetailsPageState extends State<EventDetailsPage> {
                         ),
                       );
                     },
-                    child: Text(
-                      'Location: ${widget.location}',
-                      style: TextStyle(
-                        color: Color(0xff1d7679),
-                        decoration: TextDecoration.underline,
-                        fontSize: 16,
-                      ),
+                    child: Row(
+                      children: [
+                        Icon(Icons.location_on, color: Color(0xff1d7679)),
+                        const SizedBox(width: 8),
+                        Text(
+                          widget.location,
+                          style: TextStyle(
+                            color: Color(0xff1d7679),
+                            decoration: TextDecoration.underline,
+                            fontSize: 16,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                   const SizedBox(height: 8),
@@ -149,6 +161,18 @@ class _EventDetailsPageState extends State<EventDetailsPage> {
                       fontWeight: FontWeight.bold,
                       color: Color(0xFF37474F),
                     ),
+                  Row(
+                    children: [
+                      const SizedBox(width: 8),
+                      Text(
+                        'Price: ${widget.price}',
+                        style: const TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
+
                   ),
                   const SizedBox(height: 16),
                   Text(
