@@ -3,9 +3,13 @@ import 'package:flutterwave_standard/flutterwave.dart';
 
 class PaymentForm extends StatefulWidget {
   final Function(bool) onPaymentProcessed;
+  final String price;
 
-  const PaymentForm({Key? key, required this.onPaymentProcessed})
-      : super(key: key);
+  const PaymentForm({
+    Key? key,
+    required this.onPaymentProcessed,
+    required this.price,
+  }) : super(key: key);
 
   @override
   _PaymentFormState createState() => _PaymentFormState();
@@ -13,9 +17,15 @@ class PaymentForm extends StatefulWidget {
 
 class _PaymentFormState extends State<PaymentForm> {
   final _formKey = GlobalKey<FormState>();
-  final _amountController = TextEditingController();
+  late final TextEditingController _amountController;
   final _phoneController = TextEditingController();
   final _emailController = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    _amountController = TextEditingController(text: widget.price);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -67,13 +77,8 @@ class _PaymentFormState extends State<PaymentForm> {
                       borderSide: BorderSide(color: Color(0xff152377)),
                     ),
                   ),
-                  keyboardType: TextInputType.number,
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Please enter an amount';
-                    }
-                    return null;
-                  },
+                  readOnly: true,
+                  style: TextStyle(color: Color(0xff0a0a33)),
                 ),
                 SizedBox(height: 10),
                 TextFormField(

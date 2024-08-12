@@ -25,8 +25,7 @@ class EventDetailsPage extends StatefulWidget {
   }) : super(key: key);
 
   Future<Map<String, double>> getCoordinates(String locationName) async {
-    final apiKey =
-        'AIzaSyD_vc1qYbzEXnqCWREUKWF-V5PRckknhjA'; // Replace with your Google Maps Geocoding API key
+    final apiKey = 'AIzaSyD_vc1qYbzEXnqCWREUKWF-V5PRckknhjA';
     final url =
         'https://maps.googleapis.com/maps/api/geocode/json?address=$locationName&key=$apiKey';
 
@@ -155,7 +154,7 @@ class _EventDetailsPageState extends State<EventDetailsPage> {
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    'Price:UGX ${widget.price}',
+                    'Price: UGX ${widget.price}',
                     style: const TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
@@ -178,6 +177,7 @@ class _EventDetailsPageState extends State<EventDetailsPage> {
                         MaterialPageRoute(
                           builder: (context) => PaymentForm(
                             onPaymentProcessed: _handlePaymentProcessed,
+                            price: widget.price,
                           ),
                         ),
                       );
@@ -190,9 +190,6 @@ class _EventDetailsPageState extends State<EventDetailsPage> {
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Color(0xffb97c0d),
                       foregroundColor: Color(0xffffffff),
-                      //
-                      //primary: Colors.blueAccent,
-                      //onPrimary: Colors.white,
                       padding:
                           EdgeInsets.symmetric(horizontal: 32, vertical: 16),
                       textStyle: TextStyle(fontSize: 18),
