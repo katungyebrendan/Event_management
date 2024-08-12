@@ -155,25 +155,12 @@ class _EventDetailsPageState extends State<EventDetailsPage> {
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    'Price: ${widget.price}',
+                    'Price:UGX ${widget.price}',
                     style: const TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
                       color: Color(0xFF37474F),
                     ),
-                    ),
-                  Row(
-                    children: [
-                      const SizedBox(width: 8),
-                      Text(
-                        'Price: ${widget.price}',
-                        style: const TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ],
-
                   ),
                   const SizedBox(height: 16),
                   Text(

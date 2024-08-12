@@ -283,7 +283,7 @@ class _RetrieveEventsPageState extends State<RetrieveEventsPage> {
                                           Padding(
                                             padding: const EdgeInsets.all(8.0),
                                             child: Text(
-                                              'Price: \$${price}',
+                                              'Price: UGX ${price}',
                                               style: const TextStyle(
                                                   color: Color(0xff0a173a)),
                                             ),
